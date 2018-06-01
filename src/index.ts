@@ -1,5 +1,1 @@
-export default class MyTypescript {
-  constructor() {
-    return 'howdy'
-  }
-}
+import Https from 'http2'
