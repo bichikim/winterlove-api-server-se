@@ -10,6 +10,10 @@ public/
 ## docs
 docs/
 
+##key
+.key/
+!.key/README.md
+
 ## log directories and files
 npm-debug.log*
 yarn-debug.log*

@@ -18,6 +18,6 @@ export async function start() {
   return server
 }
 
-export function stop(server: Server) {
-  console.log(server.info.address)
+export async function stop(server: Server, options?: {timeout: number}) {
+  await server.stop(options)
 }
