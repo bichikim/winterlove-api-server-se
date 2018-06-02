@@ -1,3 +1,3 @@
-# My typescript
+# Hapi api server
 
-> A quick way to start typescript 
+> Hapi server

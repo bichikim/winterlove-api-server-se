@@ -42,12 +42,13 @@ module.exports = function(config) {
     colors: true,
     customLaunchers: {
       ChromeWithoutSecurity: {
-        base: 'Chrome',
+        base: 'ChromeHeadless',
         flags: ['--disable-web-security'],
       },
     },
     mime: {
       'text/x-typescript': ['ts'],
     },
+    singleRun: false
   })
 }

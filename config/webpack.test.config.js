@@ -24,5 +24,5 @@ module.exports = webpackMerge(WebpackBaseConfig, {
         exclude: /node_modules|\.spec\.js$/,
       }
     ]
-  }
+  },
 })
