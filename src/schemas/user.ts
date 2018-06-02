@@ -1,1 +1,0 @@
-import {joigoose} from './'

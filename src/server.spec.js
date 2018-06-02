@@ -1,4 +1,3 @@
-/* eslint-disable max-nested-callbacks,no-magic-numbers */
 import {start} from './server'
 describe('server', () => {
   describe('start', () => {
