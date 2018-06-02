@@ -1,5 +1,5 @@
 import Hapi, {Server} from 'hapi'
-import {getArgv} from '@/util.js'
+import getArgv from '@/util/getArgv'
 import routes from '@/routes'
 
 export async function start() {

@@ -1,4 +1,4 @@
-import {IServerOptions, name} from '@/util.js'
+import {IServerOptions, name} from './getArgv'
 import Http2, {Http2Server, Http2SecureServer} from 'http2'
 import fs from 'fs'
 

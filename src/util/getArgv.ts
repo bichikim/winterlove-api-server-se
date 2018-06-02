@@ -12,7 +12,7 @@ export function name() {
   return packageJson.name || 'server'
 }
 
-export function getArgv(_argv: any) {
+export default function getArgv(_argv: any) {
   const defaults = {
     port: 8080,
     host: 'localhost',
