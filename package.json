@@ -21,8 +21,8 @@
     "doc": "typedoc -out ./docs ./src --media ./media",
     "deploy": "??",
     "test": "npm run test:unit",
-    "test:else": "mocha-webpack \"src/**/*.spec.js\" --webpack-config config/webpack.test.config.js --timeout 3000 --recursive --require config/chai.js",
-    "test:unit": "karma start config/karma.config.js --browsers=ChromeWithoutSecurity --single-run"
+    "test:unit": "mocha-webpack \"src/**/*.spec.js\" --webpack-config config/webpack.test.config.js --timeout 3000 --recursive --require build/chai.js --watch",
+    "test:karma": "karma start config/karma.config.js --browsers=ChromeWithoutSecurity --single-run"
   },
   "repository": {
     "type": "git",
@@ -81,6 +81,7 @@
     "karma-spec-reporter": "0.0.32",
     "karma-webpack": "^3.0.0",
     "mocha": "^5.2.0",
+    "mocha-typescript": "^1.1.14",
     "mocha-webpack": "^2.0.0-beta.0",
     "nodemon": "^1.17.5",
     "npm-run-all": "^4.1.3",

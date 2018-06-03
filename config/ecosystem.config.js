@@ -7,6 +7,7 @@ module.exports = {
       watch: false,
       instances: 0,
       exec_mode: 'cluster',
+      listen_timeout: 8000,
       env: {
         'NODE_ENV': 'development',
       },
