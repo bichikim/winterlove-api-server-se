@@ -11,6 +11,17 @@ const routers: ServerRoute[]  = [
     }
   },
   {
+    method: 'POST',
+    path: '/info',
+    handler: function(request: Request) {
+      const {data} = request.payload as any
+      this.lowDB.set('info', data).write()
+      return {
+        data: this.lowDB.get('info').value(),
+      }
+    }
+  },
+  {
     method: 'GET',
     path: '/',
     handler() {
