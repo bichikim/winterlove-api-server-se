@@ -3,6 +3,15 @@ import {Request, ResponseToolkit, ServerRoute} from 'hapi'
 const routers: ServerRoute[]  = [
   {
     method: 'GET',
+    path: '/info',
+    handler: function() {
+      return {
+        data: this.lowDB.get('info').value(),
+      }
+    }
+  },
+  {
+    method: 'GET',
     path: '/',
     handler() {
       console.log('/')
@@ -19,6 +28,7 @@ const routers: ServerRoute[]  = [
       return h.response('abc')
     }
   }
+
 ]
 
 
