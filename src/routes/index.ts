@@ -1,4 +1,4 @@
-import {Request, ResponseToolkit, ServerRoute} from 'hapi'
+import {Request, ServerRoute} from 'hapi'
 
 const routers: ServerRoute[]  = [
   {
@@ -23,23 +23,34 @@ const routers: ServerRoute[]  = [
   },
   {
     method: 'GET',
-    path: '/',
-    handler() {
-      console.log('/')
+    path: '/docs',
+    handler: function(request: Request) {
+      // eslint-disable-next-line no-magic-numbers
+      const {offset = 0, take = 5} = request.params as any
+      const docs = this.lowDB.get('docs').value()
       return {
-        a: 'a'
+        data: [...docs].splice(offset, take)
       }
     }
   },
   {
-    method: 'GET',
-    path: '/a',
-    handler(request: Request, h: ResponseToolkit) {
-      console.log('/a')
-      return h.response('abc')
+    method: 'POST',
+    path: '/docs',
+    handler: function(request: Request) {
+      // eslint-disable-next-line no-magic-numbers
+      const {title, description, ok = false} = request.payload as any
+      let status = 'error'
+      if(!title && !description){
+        this.lowDB.get('docs').push({
+          title, description, ok
+        }).write()
+        status = 'ok'
+      }
+      return {
+        status,
+      }
     }
-  }
-
+  },
 ]
 
 
