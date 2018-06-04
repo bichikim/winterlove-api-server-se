@@ -1,33 +1,27 @@
-import {Plugin, ServerRoute} from 'hapi'
+import {IOptions, IController} from './types'
 import capitalize from 'lodash/capitalize'
-interface IController {
-  [name: string]: any
-}
-interface IOptions {
-  controllers?: IController[]
-  routes: ServerRoute[]
-  context?: {[name: string]: any}
-  bindContextAtRoutes?: boolean
-}
-const plugin: Plugin<IOptions> = {
+import {Plugin} from 'hapi'
+
+const plugin: Plugin<IOptions<any>> = {
   name: 'controllersRoutes',
   version: '0.0.1',
-  register: function(server, options) {
+  register: function(server, options: IOptions<any> = {}) {
     const {
       controllers = [],
-      routes,
+      routes = [],
       context = {},
-      bindContextAtRoutes = true,
+      bindRoutes = true,
     } = options
 
-    const controllerInstances: {[name: string]: IController} = {}
+    const controllerInstances: {[name: string]: IController<any>} = {}
     controllers.forEach((Controller: any) => {
       controllerInstances[Controller.name] = new Controller(server, context)
     })
     const handler = (route: any, options: any) => {
       if(!options){return}
       let {controller, method} = options
-      let controllerName, methodName
+      let controllerName: string
+      let methodName: string
       if(typeof controller === 'string' && typeof method === 'string'){
         controllerName = controller
         methodName = method
@@ -48,9 +42,10 @@ const plugin: Plugin<IOptions> = {
       return handle.bind(_controller)
     }
     server.decorate('handler', 'controller', handler)
-    const bind = bindContextAtRoutes ? context : {}
-    Object.freeze(bind)
-    server.bind(bind)
+    if(bindRoutes){
+      Object.freeze(context)
+      server.bind(context)
+    }
     server.route(routes)
   }
 }

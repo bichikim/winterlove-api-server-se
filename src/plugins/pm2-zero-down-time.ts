@@ -2,6 +2,11 @@ import {Plugin} from 'hapi'
 interface IOptions {
   timeout: number
 }
+
+/**
+ * this idea is from
+ * @link https://github.com/roylines/hapi-graceful-pm2
+ */
 const plugin: Plugin<IOptions> = {
   name: 'pm2ZeroDownTime',
   version: '0.0.1',

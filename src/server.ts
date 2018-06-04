@@ -1,9 +1,9 @@
-import Hapi, {Server} from 'hapi'
-import getArgv from '@/util/getArgv'
-import routes from '@/routes'
+import controllersRoutes from '@/plugins/controllers-routes/'
 import jsonDB from '@/plugins/low-db'
-import controllersRoutes from '@/plugins/controllers-routes'
 import pm2ZeroDownTime from '@/plugins/pm2-zero-down-time'
+import routes from '@/routes'
+import getArgv from '@/util/getArgv'
+import Hapi, {Server} from 'hapi'
 
 export async function start() {
   const serverOptions = getArgv(process.argv.slice(2))
@@ -24,7 +24,7 @@ export async function start() {
     routes,
     context: {
       lowDB: plugins.lowDB.db,
-    }
+    },
   }})
 
   await server.start()
