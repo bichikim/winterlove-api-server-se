@@ -13,9 +13,9 @@ const routers: ServerRoute[]  = [
   {
     method: 'POST',
     path: '/info',
-    handler: function(request: Request) {
+    handler: async function(request: Request) {
       const {data} = request.payload as any
-      this.lowDB.set('info', data).write()
+      await this.lowDB.set('info', data).write()
       return {
         data: this.lowDB.get('info').value(),
       }
@@ -36,18 +36,87 @@ const routers: ServerRoute[]  = [
   {
     method: 'POST',
     path: '/docs',
-    handler: function(request: Request) {
+    handler: async function(request: Request) {
       // eslint-disable-next-line no-magic-numbers
       const {title, description, ok = false} = request.payload as any
-      let status = 'error'
-      if(!title && !description){
-        this.lowDB.get('docs').push({
-          title, description, ok
-        }).write()
-        status = 'ok'
+      if(!title || !description){
+        return {status: 'error'}
       }
+      await this.lowDB.get('docs').push({title, description, ok}).write()
       return {
-        status,
+        status: 'ok'
+      }
+    }
+  },
+  {
+    method: 'put',
+    path: '/docs',
+    handler: async function(request: Request) {
+      // eslint-disable-next-line no-magic-numbers
+      const {index, title, description, ok} = request.payload as any
+      let status = 'error'
+      if(!index || !title || !description){
+        return {status}
+      }
+      await this.lowDB.update('docs', (docs: any[]) => {
+        if(!docs[index]){
+          return docs
+        }
+        docs[index] = {
+          title, description, ok: ok ? ok : docs[index].ok,
+        }
+        status = 'ok'
+        return docs
+      }).write()
+      return {
+        status
+      }
+    }
+  },
+  {
+    method: 'patch',
+    path: '/docs',
+    handler: async function(request: Request) {
+      // eslint-disable-next-line no-magic-numbers
+      const {index, ok} = request.payload as any
+      let status = 'error'
+      if(!index || !ok){
+        return {status}
+      }
+      const _ok = ok === 'false' ? false : Boolean(ok)
+      await this.lowDB.update('docs', (docs: any[]) => {
+        if(!docs[index]){
+          return docs
+        }
+        docs[index].ok = _ok
+        status = 'ok'
+        return docs
+      }).write()
+      return {
+        status
+      }
+    }
+  },
+  {
+    method: 'delete',
+    path: '/docs',
+    handler: async function(request: Request) {
+      // eslint-disable-next-line no-magic-numbers
+      const {index} = request.payload as any
+      let status = 'error'
+      if(!index){
+        return {status}
+      }
+      await this.lowDB.update('docs', (docs: any[]) => {
+        if(!docs[index]){
+          return docs
+        }
+        docs.splice(index, 1)
+        status = 'ok'
+        return docs
+      }).write()
+      return {
+        status
       }
     }
   },
