@@ -1,15 +1,11 @@
 import parseArgs from 'minimist'
-import packageJson from '@/../package.json'
+
 export interface IServerOptions {
   protocol?: string
   port?: number
   host?: string
   key?: string
   cert?: string
-}
-
-export function name() {
-  return packageJson.name || 'server'
 }
 
 function number(data: number, defaultData: number) {

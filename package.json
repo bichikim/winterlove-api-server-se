@@ -67,7 +67,6 @@
     "eslint-plugin-promise": "^3.7.0",
     "eslint-plugin-typescript": "^0.12.0",
     "eslint-plugin-vue": "^4.5.0",
-    "hapi-swagger": "^9.1.1",
     "istanbul-instrumenter-loader": "^3.0.1",
     "karma": "^2.0.2",
     "karma-chai": "^0.1.0",
@@ -98,8 +97,10 @@
   },
   "dependencies": {
     "bell": "^9.3.1",
+    "good": "^8.1.1",
     "hapi": "^17.5.1",
     "hapi-auth-jwt2": "^8.1.0",
+    "hapi-swagger": "^9.1.1",
     "joi": "^13.3.0",
     "joigoose": "^4.0.0",
     "lodash": "^4.17.10",

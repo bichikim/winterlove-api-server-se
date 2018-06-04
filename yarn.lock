@@ -2583,7 +2583,7 @@ duplexer@~0.1.1:
   version "0.1.1"
   resolved "https://registry.yarnpkg.com/duplexer/-/duplexer-0.1.1.tgz#ace6ff808c1ce66b57d1ebf97977acb02334cfc1"
 
-duplexify@^3.2.0, duplexify@^3.4.2, duplexify@^3.6.0:
+duplexify@^3.2.0, duplexify@^3.4.2, duplexify@^3.5.3, duplexify@^3.6.0:
   version "3.6.0"
   resolved "https://registry.yarnpkg.com/duplexify/-/duplexify-3.6.0.tgz#592903f5d80b38d037220541264d69a198fb3410"
   dependencies:
@@ -3529,6 +3529,15 @@ globby@^7.1.1:
     ignore "^3.3.5"
     pify "^3.0.0"
     slash "^1.0.0"
+
+good@^8.1.1:
+  version "8.1.1"
+  resolved "https://registry.yarnpkg.com/good/-/good-8.1.1.tgz#02b38a9bdab4862d9a4e7897b13a88f6663cd81f"
+  dependencies:
+    hoek "5.x.x"
+    joi "13.x.x"
+    oppsy "2.x.x"
+    pumpify "1.3.x"
 
 got@^6.7.1:
   version "6.7.1"
@@ -5715,6 +5724,12 @@ ono@^4.0.3, ono@^4.0.5:
   dependencies:
     format-util "^1.0.3"
 
+oppsy@2.x.x:
+  version "2.0.0"
+  resolved "https://registry.yarnpkg.com/oppsy/-/oppsy-2.0.0.tgz#3a194517adc24c3c61cdc56f35f4537e93a35e34"
+  dependencies:
+    hoek "5.x.x"
+
 optimist@^0.6.1:
   version "0.6.1"
   resolved "https://registry.yarnpkg.com/optimist/-/optimist-0.6.1.tgz#da3ea74686fa21a19a111c326e90eb15a0196686"
@@ -6265,6 +6280,14 @@ pump@^2.0.0, pump@^2.0.1:
   dependencies:
     end-of-stream "^1.1.0"
     once "^1.3.1"
+
+pumpify@1.3.x:
+  version "1.3.6"
+  resolved "https://registry.yarnpkg.com/pumpify/-/pumpify-1.3.6.tgz#00d40e5ded0a3bf1e0788b1c0cf426a42882ab64"
+  dependencies:
+    duplexify "^3.5.3"
+    inherits "^2.0.3"
+    pump "^2.0.0"
 
 pumpify@^1.3.3, pumpify@^1.3.5:
   version "1.5.1"

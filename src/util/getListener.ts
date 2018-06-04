@@ -1,5 +1,6 @@
-import {IServerOptions, name} from './getArgv'
+import {IServerOptions} from './getArgv'
 import Http2, {Http2Server, Http2SecureServer} from 'http2'
+import {name} from './pkg'
 import fs from 'fs'
 
 export function getListener(options: IServerOptions = {}): Http2Server | Http2SecureServer {

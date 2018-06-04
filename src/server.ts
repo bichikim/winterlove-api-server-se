@@ -1,9 +1,12 @@
 import controllersRoutes from '@/plugins/controllers-routes/'
-import jsonDB from '@/plugins/low-db'
+import lowDB from '@/plugins/low-db'
 import pm2ZeroDownTime from '@/plugins/pm2-zero-down-time'
 import routes from '@/routes'
 import getArgv from '@/util/getArgv'
+import {name, version} from '@/util/pkg'
 import Hapi, {Server} from 'hapi'
+import good from 'good'
+import hapiSwagger from 'hapi-swagger'
 
 export async function start() {
   const serverOptions = getArgv(process.argv.slice(2))
@@ -14,20 +17,61 @@ export async function start() {
     port, host,
   })
 
-  await server.register({plugin: pm2ZeroDownTime})
+  try{
+    await server.register({plugin: good})
+  }catch(error){
+    server.log(['error', 'good', 'register'], 'server cannot resister')
+    throw error
+  }
 
-  await server.register({plugin: jsonDB})
+  try{
+    await server.register({plugin: pm2ZeroDownTime})
+  }catch(error){
+    server.log(['error', 'pm2-zero-down-time', 'register'], 'server cannot resister')
+    throw error
+  }
+
+  try{
+    await server.register({plugin: lowDB})
+  }catch(error){
+    server.log(['error', 'low-db', 'register'], 'server cannot resister')
+    throw error
+  }
+
 
   const plugins: any = server.plugins
 
-  await server.register({plugin: controllersRoutes, options: {
-    routes,
-    context: {
-      lowDB: plugins.lowDB.db,
-    },
-  }})
+  try{
+    await server.register({plugin: controllersRoutes, options: {
+      routes,
+      context: {
+        lowDB: plugins.lowDB.db,
+      },
+    }})
+  }catch(error){
+    server.log(['error', 'controllers-routes', 'register'], 'server cannot resister')
+    throw error
+  }
 
-  await server.start()
+
+  try{
+    await server.register({plugin: hapiSwagger, options: {
+      info: {
+        title: name(),
+        version: version(),
+      },
+    }})
+  }catch(error){
+    server.log(['error', 'hapi-swagger', 'register'], 'server cannot resister')
+    throw error
+  }
+
+  try{
+    await server.start()
+  }catch(error){
+    server.log(['error', 'hapi', 'start'], 'server cannot run')
+    throw error
+  }
 
   return server
 }
