@@ -28,7 +28,7 @@ export default function getArgv(_argv: any): IServerOptions {
       h: 'host',
       k: 'key',
       c: 'cert',
-    }
+    },
   })
   // define option values
   const port: number = number(argv.port || process.env.port, defaults.port)

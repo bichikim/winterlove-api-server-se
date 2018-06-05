@@ -18,7 +18,7 @@ const plugin: Plugin<IOptions> = {
         return process.exit(0)
       })
     })
-  }
+  },
 }
 
 export default plugin

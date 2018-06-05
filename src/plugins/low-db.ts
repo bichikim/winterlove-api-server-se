@@ -16,9 +16,9 @@ const plugin: Plugin<IOptions> = {
     const db = await Database(adapter)
     db.defaults({docs: [], info: 'unset'}).write()
     server.expose({
-      db
+      db,
     })
-  }
+  },
 }
 
 export default plugin

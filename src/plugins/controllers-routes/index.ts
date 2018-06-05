@@ -47,7 +47,7 @@ const plugin: Plugin<IOptions<any>> = {
       server.bind(context)
     }
     server.route(routes)
-  }
+  },
 }
 
 export default plugin

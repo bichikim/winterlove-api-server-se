@@ -1,6 +1,6 @@
 const {join} = require('path')
 const formatter = require('eslint-friendly-formatter')
-
+const nodeExternals = require('webpack-node-externals')
 const resolve = function(dir) {
   return join(__dirname, '..', dir)
 }
@@ -8,7 +8,7 @@ const resolve = function(dir) {
 module.exports = {
   target: 'node',
   entry: {
-    app: ['./src/index.ts']
+    app: ['./src/index.ts'],
   },
   output: {
     path: resolve('dist'),
@@ -21,7 +21,8 @@ module.exports = {
       '@': resolve('src'),
       '~': resolve('lib'),
       '@@': resolve('./'),
-      '~~': resolve('./')
+      '~~': resolve('./'),
+      'handlebars': 'handlebars/dist/handlebars.js',
     },
   },
   module: {
@@ -42,16 +43,20 @@ module.exports = {
           {
             loader: 'ts-loader',
             options: {
-              appendTsSuffixTo: [/\.vue$/]
-            }
+              appendTsSuffixTo: [/\.vue$/],
+            },
           },
         ],
       },
       {
         test: /\.js$/,
         exclude: /node_modules/,
+        include: [
+          resolve('./node_modules/vision/lib/manager.js'),
+        ],
         use: 'babel-loader',
       },
-    ]
+    ],
   },
+  externals: [nodeExternals()],
 }
