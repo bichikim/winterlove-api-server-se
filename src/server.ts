@@ -3,10 +3,8 @@ import lowDB from '@/plugins/low-db'
 import pm2ZeroDownTime from '@/plugins/pm2-zero-down-time'
 import routes from '@/routes'
 import getArgv from '@/util/getArgv'
-import {name, version} from '@/util/pkg'
 import Hapi, {Server} from 'hapi'
 import good from 'good'
-import hapiSwagger from 'hapi-swagger'
 
 export async function start() {
   const serverOptions = getArgv(process.argv.slice(2))
@@ -16,6 +14,7 @@ export async function start() {
     // listener: listener as any,
     port, host,
   })
+
 
   try{
     await server.register({plugin: good})
@@ -53,18 +52,18 @@ export async function start() {
     throw error
   }
 
-
-  try{
-    await server.register({plugin: hapiSwagger, options: {
-      info: {
-        title: name(),
-        version: version(),
-      },
-    }})
-  }catch(error){
-    server.log(['error', 'hapi-swagger', 'register'], 'server cannot resister')
-    throw error
-  }
+  //
+  // try{
+  //   await server.register({plugin: hapiSwagger, options: {
+  //     info: {
+  //       title: name(),
+  //       version: version(),
+  //     },
+  //   }})
+  // }catch(error){
+  //   server.log(['error', 'hapi-swagger', 'register'], 'server cannot resister')
+  //   throw error
+  // }
 
   try{
     await server.start()
