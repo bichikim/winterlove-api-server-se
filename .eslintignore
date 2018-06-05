@@ -1,4 +1,3 @@
-build/*.js
 coverage/
 public/*.js
 dist/*.js

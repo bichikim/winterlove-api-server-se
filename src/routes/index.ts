@@ -8,7 +8,7 @@ const routers: ServerRoute[]  = [
       return {
         data: this.lowDB.get('info').value(),
       }
-    }
+    },
   },
   {
     method: 'POST',
@@ -19,7 +19,7 @@ const routers: ServerRoute[]  = [
       return {
         data: this.lowDB.get('info').value(),
       }
-    }
+    },
   },
   {
     method: 'GET',
@@ -29,9 +29,9 @@ const routers: ServerRoute[]  = [
       const {offset = 0, take = 5} = request.params as any
       const docs = this.lowDB.get('docs').value()
       return {
-        data: [...docs].splice(offset, take)
+        data: [...docs].splice(offset, take),
       }
-    }
+    },
   },
   {
     method: 'POST',
@@ -44,9 +44,9 @@ const routers: ServerRoute[]  = [
       }
       await this.lowDB.get('docs').push({title, description, ok}).write()
       return {
-        status: 'ok'
+        status: 'ok',
       }
-    }
+    },
   },
   {
     method: 'put',
@@ -69,9 +69,9 @@ const routers: ServerRoute[]  = [
         return docs
       }).write()
       return {
-        status
+        status,
       }
-    }
+    },
   },
   {
     method: 'patch',
@@ -93,9 +93,9 @@ const routers: ServerRoute[]  = [
         return docs
       }).write()
       return {
-        status
+        status,
       }
-    }
+    },
   },
   {
     method: 'delete',
@@ -116,9 +116,9 @@ const routers: ServerRoute[]  = [
         return docs
       }).write()
       return {
-        status
+        status,
       }
-    }
+    },
   },
 ]
 

@@ -3,11 +3,40 @@ import lowDB from '@/plugins/low-db'
 import pm2ZeroDownTime from '@/plugins/pm2-zero-down-time'
 import routes from '@/routes'
 import getArgv from '@/util/getArgv'
+import {name, version} from '@/util/pkg'
 import Hapi, {Server} from 'hapi'
-import good from 'good'
+import hapiSwagger from 'hapi-swagger'
+import inert from 'inert'
+import vision from 'vision'
+const SKIP = 2
+
+async function register(
+  server: Server,
+  plugin: any, options?: any) {
+  let _name
+  const {name} = plugin
+  if(name){
+    _name = name
+  }else if(plugin.plugin){
+    if(plugin.plugin.name){
+      _name = plugin.plugin.name
+    }else{
+      _name = plugin.plugin.pkg.name
+    }
+  }else{
+    _name = 'unknown'
+  }
+  try{
+    await server.register({plugin, options})
+  }catch(error){
+
+    server.log(['error', _name, 'register'], 'server cannot resister')
+  }
+  return (server.plugins as any)[_name]
+}
 
 export async function start() {
-  const serverOptions = getArgv(process.argv.slice(2))
+  const serverOptions = getArgv(process.argv.slice(SKIP))
   // const listener = getListener(serverOptions)
   const {port, host} = serverOptions
   const server: Server = new Hapi.Server({
@@ -15,55 +44,17 @@ export async function start() {
     port, host,
   })
 
-
-  try{
-    await server.register({plugin: good})
-  }catch(error){
-    server.log(['error', 'good', 'register'], 'server cannot resister')
-    throw error
-  }
-
-  try{
-    await server.register({plugin: pm2ZeroDownTime})
-  }catch(error){
-    server.log(['error', 'pm2-zero-down-time', 'register'], 'server cannot resister')
-    throw error
-  }
-
-  try{
-    await server.register({plugin: lowDB})
-  }catch(error){
-    server.log(['error', 'low-db', 'register'], 'server cannot resister')
-    throw error
-  }
-
-
-  const plugins: any = server.plugins
-
-  try{
-    await server.register({plugin: controllersRoutes, options: {
-      routes,
-      context: {
-        lowDB: plugins.lowDB.db,
-      },
-    }})
-  }catch(error){
-    server.log(['error', 'controllers-routes', 'register'], 'server cannot resister')
-    throw error
-  }
-
-  //
-  // try{
-  //   await server.register({plugin: hapiSwagger, options: {
-  //     info: {
-  //       title: name(),
-  //       version: version(),
-  //     },
-  //   }})
-  // }catch(error){
-  //   server.log(['error', 'hapi-swagger', 'register'], 'server cannot resister')
-  //   throw error
-  // }
+  await register(server, inert)
+  await register(server, vision)
+  await register(server, pm2ZeroDownTime)
+  const {db} = await register(server, lowDB)
+  await register(server, controllersRoutes, {routes, context: {lowDB: db}})
+  await register(server, hapiSwagger, {
+    info: {
+      title: name(),
+      version: version(),
+    },
+  })
 
   try{
     await server.start()
