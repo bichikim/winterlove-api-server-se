@@ -1,29 +1,18 @@
-import {start, stop} from './server'
-describe('server', () => {
-  describe('start', () => {
+import APIServer from './APIServer'
+describe('APIServer', () => {
+  const server = new APIServer()
+  describe('start & stop', () => {
     it('should start server', (done) => {
-      expect(start).to.be.a('function')
-      start().then((server) => {
-        expect(server).to.be.an('object')
-        expect(server.info.address).to.equal('127.0.0.1')
-        expect(server.info.port).to.equal(8080)
+      expect(server.start).to.be.a('function')
+      server.start().then((_server) => {
+        expect(_server).to.be.an('object')
+        expect(_server.info.address).to.equal('127.0.0.1')
+        expect(_server.info.port).to.equal(8080)
         server.stop().then(() => {
           done()
         })
       }).catch((error) => {
         done(error)
-      })
-    })
-  })
-  describe('stop', () => {
-    it('should stop server', (done) => {
-      expect(stop).to.be.a('function')
-      start().then((server) => {
-        stop(server).then(() => {
-          done()
-        }).catch((error) => {
-          done(error)
-        })
       })
     })
   })

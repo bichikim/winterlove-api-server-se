@@ -1,10 +1,14 @@
 import {Server} from 'hapi'
-import {start} from '@/server'
+import APIServer from '@/APIServer'
+import {name, version} from '@/util/pkg'
 
-start().then((server: Server) => {
+const server = new APIServer()
+
+server.start().then((server: Server) => {
   if(process.env.NODE_ENV === 'production'){return}
   console.log(
-    `Server is running for ${server.info.address}:${server.info.port}\n` +
-      `hapi version: ${server.version}`,
+    `Server is running for ${server.info.protocol}://${server.info.address}:${server.info.port}\n` +
+    `hapi version: ${server.version}\n` +
+    `${name()} version: ${version()}`,
   )
 })
