@@ -109,7 +109,7 @@ const routers: IServerRoute[]  = [
     method: 'PUT',
     path: '/docs',
     config: {
-      description: 'Update docs',
+      description: 'Update a doc',
       notes: 'Update a doc for docs list',
       tags: ['api', 'docs'],
       validate: {
@@ -138,7 +138,7 @@ const routers: IServerRoute[]  = [
     method: 'PATCH',
     path: '/docs',
     config: {
-      description: 'Fix docs',
+      description: 'Fix a doc',
       notes: 'Fix a doc for docs list',
       tags: ['api', 'docs'],
       validate: {
