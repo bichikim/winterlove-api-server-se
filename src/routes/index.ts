@@ -26,7 +26,7 @@ const routers: ServerRoute[]  = [
     path: '/docs',
     handler: function(request: Request) {
       // eslint-disable-next-line no-magic-numbers
-      const {offset = 0, take = 5} = request.params as any
+      const {offset = 0, take = 5} = request.query as any
       const docs = this.lowDB.get('docs').value()
       return {
         data: [...docs].splice(offset, take),
@@ -42,7 +42,7 @@ const routers: ServerRoute[]  = [
       if(!title || !description){
         return {status: 'error'}
       }
-      await this.lowDB.get('docs').push({title, description, ok}).write()
+      await this.lowDB.get('docs').push({title, description, ok}).last().write()
       return {
         status: 'ok',
       }
