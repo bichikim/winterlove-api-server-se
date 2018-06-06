@@ -3,7 +3,8 @@ import Database from 'lowdb'
 import FileAsync from 'lowdb/adapters/FileAsync'
 interface IOptions {
   name?: string
-  bind?: ServerRoute[]
+  bind?: ServerRoute[],
+  init?: {[name: string]: any}
 }
 const plugin: Plugin<IOptions> = {
   name: 'lowDB',
@@ -11,10 +12,11 @@ const plugin: Plugin<IOptions> = {
   register: async function(server, options = {}) {
     const {
       name = './.db/db.json',
+      init = {docs: [], info: 'unset', auth: []},
     } = options
     const adapter = new FileAsync(name)
     const db = await Database(adapter)
-    db.defaults({docs: [], info: 'unset'}).write()
+    db.defaults(init).write()
     server.expose({
       db,
     })

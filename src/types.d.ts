@@ -1,5 +1,6 @@
 import {Server, HandlerDecorations, Lifecycle, ServerRoute} from 'hapi'
 import {Schema} from 'Joi'
+import {LowdbAsync} from 'lowdb'
 
 declare interface IAPIServer {
   readonly server: Server
@@ -31,4 +32,8 @@ declare interface IServerRoute extends ServerRoute{
     }
     handler: Lifecycle.Method | HandlerDecorations
   }
+}
+
+interface IContext {
+  lowDB: LowdbAsync<any>
 }

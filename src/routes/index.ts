@@ -1,7 +1,6 @@
-import {Request} from 'hapi'
+import {Request, ResponseToolkit} from 'hapi'
 import Joi from 'joi'
 import {IServerRoute} from '@/types'
-import {ResponseToolkit} from 'hapi'
 
 const routers: IServerRoute[]  = [
   {
