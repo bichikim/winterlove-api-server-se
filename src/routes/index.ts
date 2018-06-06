@@ -55,17 +55,17 @@ const routers: IServerRoute[]  = [
           take: Joi.number(),
         },
       },
-      // response: {
-      //   schema: Joi.object({
-      //     data: Joi.array().items(Joi.object({
-      //       title: Joi.string().required(),
-      //       description: Joi.string().required(),
-      //       ok: Joi.boolean().required(),
-      //       id: Joi.number().required(),
-      //       time: Joi.number().required(),
-      //     })).required(),
-      //   }),
-      // },
+      response: {
+        schema: Joi.object({
+          data: Joi.array().items(Joi.object({
+            title: Joi.string().required(),
+            description: Joi.string().required(),
+            ok: Joi.boolean().required(),
+            id: Joi.number().required(),
+            time: Joi.number().required(),
+          })).required(),
+        }),
+      },
       handler: function(request: Request) {
         // eslint-disable-next-line no-magic-numbers
         const {offset = 0, take = 5} = request.query as any
