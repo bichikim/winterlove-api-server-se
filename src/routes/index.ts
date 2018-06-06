@@ -138,8 +138,8 @@ const routers: IServerRoute[]  = [
     method: 'PATCH',
     path: '/docs',
     config: {
-      description: 'Update docs',
-      notes: 'Update a doc for docs list',
+      description: 'Fix docs',
+      notes: 'Fix a doc for docs list',
       tags: ['api', 'docs'],
       validate: {
         payload: {
@@ -148,7 +148,6 @@ const routers: IServerRoute[]  = [
         },
       },
       handler: async function(request: Request, h: ResponseToolkit) {
-        console.log(request.payload)
         const {id, ok} = request.payload as any
         const doc = await this.lowDB.get('docs').find({id})
         if(doc){
@@ -162,8 +161,8 @@ const routers: IServerRoute[]  = [
     method: 'delete',
     path: '/docs',
     config: {
-      description: 'Update docs',
-      notes: 'Update a doc for docs list',
+      description: 'Delete a doc',
+      notes: 'Delete a doc for docs list',
       tags: ['api', 'docs'],
       validate: {
         payload: {
