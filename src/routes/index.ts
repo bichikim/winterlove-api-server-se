@@ -1,123 +1,180 @@
-import {Request, ServerRoute} from 'hapi'
+import {Request} from 'hapi'
+import Joi from 'joi'
+import {IServerRoute} from '@/types'
+import {ResponseToolkit} from 'hapi'
 
-const routers: ServerRoute[]  = [
+const routers: IServerRoute[]  = [
   {
     method: 'GET',
     path: '/info',
-    handler: function() {
-      return {
-        data: this.lowDB.get('info').value(),
-      }
+    config: {
+      description: 'Get info',
+      notes: 'Returns a info for a main page',
+      tags: ['api', 'info'],
+      response: {
+        schema: Joi.object({
+          data: Joi.string().required().description('info data'),
+        }),
+      },
+      handler: function() {
+        return {
+          data: this.lowDB.get('info').value(),
+        }
+      },
     },
   },
   {
     method: 'POST',
     path: '/info',
-    handler: async function(request: Request) {
-      const {data} = request.payload as any
-      await this.lowDB.set('info', data).write()
-      return {
-        data: this.lowDB.get('info').value(),
-      }
+    config: {
+      description: 'Post info',
+      notes: 'Save a info for a main page',
+      tags: ['api', 'info'],
+      validate: {
+        payload:{
+          data: Joi.string().required(),
+        },
+      },
+      handler: async function(request: Request, h: ResponseToolkit) {
+        const {data} = request.payload as any
+        await this.lowDB.set('info', data).write()
+        return h.response()
+      },
     },
   },
   {
     method: 'GET',
     path: '/docs',
-    handler: function(request: Request) {
-      // eslint-disable-next-line no-magic-numbers
-      const {offset = 0, take = 5} = request.query as any
-      const docs = this.lowDB.get('docs').value()
-      return {
-        data: [...docs].splice(offset, take),
-      }
+    config: {
+      description: 'Get docs',
+      notes: 'Save docs for docs list',
+      tags: ['api', 'docs'],
+      validate: {
+        query: {
+          offset: Joi.number(),
+          take: Joi.number(),
+        },
+      },
+      // response: {
+      //   schema: Joi.object({
+      //     data: Joi.array().items(Joi.object({
+      //       title: Joi.string().required(),
+      //       description: Joi.string().required(),
+      //       ok: Joi.boolean().required(),
+      //       id: Joi.number().required(),
+      //       time: Joi.number().required(),
+      //     })).required(),
+      //   }),
+      // },
+      handler: function(request: Request) {
+        // eslint-disable-next-line no-magic-numbers
+        const {offset = 0, take = 5} = request.query as any
+        return {
+          data: this.lowDB.get('docs').drop(offset).take(take).value(),
+        }
+      },
     },
   },
   {
     method: 'POST',
     path: '/docs',
-    handler: async function(request: Request) {
-      // eslint-disable-next-line no-magic-numbers
-      const {title, description, ok = false} = request.payload as any
-      if(!title || !description){
-        return {status: 'error'}
-      }
-      await this.lowDB.get('docs').push({title, description, ok}).last().write()
-      return {
-        status: 'ok',
-      }
+    config: {
+      description: 'Post a doc',
+      notes: 'Save a doc for docs list',
+      tags: ['api', 'docs'],
+      validate: {
+        payload: {
+          title: Joi.string().required(),
+          description: Joi.string().required(),
+          ok: Joi.boolean(),
+        },
+      },
+      handler: async function(request: Request, h: ResponseToolkit) {
+        const {title, description, ok = false} = request.payload as any
+        if(!title || !description){
+          return {status: 'error'}
+        }
+        const {length} = this.lowDB.get('docs').value()
+        await this.lowDB.get('docs')
+          .push({title, description, ok})
+          .last()
+          .assign({time: Date.now().toString(), id: length})
+          .write()
+        return h.response()
+      },
     },
+
   },
   {
-    method: 'put',
+    method: 'PUT',
     path: '/docs',
-    handler: async function(request: Request) {
-      // eslint-disable-next-line no-magic-numbers
-      const {index, title, description, ok} = request.payload as any
-      let status = 'error'
-      if(!index || !title || !description){
-        return {status}
-      }
-      await this.lowDB.update('docs', (docs: any[]) => {
-        if(!docs[index]){
-          return docs
+    config: {
+      description: 'Update docs',
+      notes: 'Update a doc for docs list',
+      tags: ['api', 'docs'],
+      validate: {
+        payload: {
+          id: Joi.number().required(),
+          title: Joi.string().required(),
+          description: Joi.string().required(),
+          ok: Joi.boolean(),
+        },
+      },
+      handler: async function(request: Request, h: ResponseToolkit) {
+        const {id, title, description, ok} = request.payload as any
+        const doc = await this.lowDB.get('docs').find({id})
+        if(doc){
+          if(ok){
+            doc.assign({ok})
+          }
+          await doc.assign({title, description}).write()
         }
-        docs[index] = {
-          title, description, ok: ok ? ok : docs[index].ok,
-        }
-        status = 'ok'
-        return docs
-      }).write()
-      return {
-        status,
-      }
+        return h.response()
+      },
     },
+
   },
   {
-    method: 'patch',
+    method: 'PATCH',
     path: '/docs',
-    handler: async function(request: Request) {
-      // eslint-disable-next-line no-magic-numbers
-      const {index, ok} = request.payload as any
-      let status = 'error'
-      if(!index || !ok){
-        return {status}
-      }
-      const _ok = ok === 'false' ? false : Boolean(ok)
-      await this.lowDB.update('docs', (docs: any[]) => {
-        if(!docs[index]){
-          return docs
+    config: {
+      description: 'Update docs',
+      notes: 'Update a doc for docs list',
+      tags: ['api', 'docs'],
+      validate: {
+        payload: {
+          id: Joi.number().required(),
+          ok: Joi.boolean(),
+        },
+      },
+      handler: async function(request: Request, h: ResponseToolkit) {
+        console.log(request.payload)
+        const {id, ok} = request.payload as any
+        const doc = await this.lowDB.get('docs').find({id})
+        if(doc){
+          await doc.assign({ok}).write()
         }
-        docs[index].ok = _ok
-        status = 'ok'
-        return docs
-      }).write()
-      return {
-        status,
-      }
+        return h.response()
+      },
     },
   },
   {
     method: 'delete',
     path: '/docs',
-    handler: async function(request: Request) {
-      // eslint-disable-next-line no-magic-numbers
-      const {index} = request.payload as any
-      let status = 'error'
-      if(!index){
-        return {status}
-      }
-      await this.lowDB.update('docs', (docs: any[]) => {
-        if(!docs[index]){
-          return docs
-        }
-        docs.splice(index, 1)
-        status = 'ok'
-        return docs
-      }).write()
-      return {
-        status,
-      }
+    config: {
+      description: 'Update docs',
+      notes: 'Update a doc for docs list',
+      tags: ['api', 'docs'],
+      validate: {
+        payload: {
+          id: Joi.number().required(),
+        },
+      },
+      handler: async function(request: Request, h: ResponseToolkit) {
+        const {id} = request.payload as any
+        await this.lowDB.get('docs').remove({id}).write()
+        return h.response()
+      },
     },
   },
 ]

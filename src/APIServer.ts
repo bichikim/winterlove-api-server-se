@@ -8,20 +8,12 @@ import Hapi, {Server} from 'hapi'
 import hapiSwagger from 'hapi-swagger'
 import inert from 'inert'
 import vision from 'vision'
+import {IAPIServer} from '@/types'
 const ARGV_SKIP = 2
-
-export interface IAPIServer {
-  readonly server: Server
-
-  register(plugin: any, options?: any): Promise<any>
-
-  start(): Promise<Server>
-
-  stop(options?: {timeout: number}): void
-}
 
 class APIServer implements IAPIServer {
   public readonly server: Server
+  public readonly production: boolean
 
   constructor(options: any = {}) {
     const serverOptions = Object.assign(getArgv(process.argv.slice(ARGV_SKIP)), options)
@@ -29,6 +21,7 @@ class APIServer implements IAPIServer {
     this.server = new Hapi.Server({
       port, host,
     })
+    this.production = !process.env.NODE_END || process.env.NODE_END === 'production'
   }
 
   async register(plugin: any, options?: any) {
@@ -55,22 +48,31 @@ class APIServer implements IAPIServer {
   }
 
   async start() {
-    await Promise.all([
-      this.register(inert),
-      this.register(vision),
-      this.register(pm2ZeroDownTime),
-    ])
+
+    // this is for dev mode
+    if(!this.production){
+      // for hapi-Swagger
+      await Promise.all([
+        this.register(inert),
+        this.register(vision),
+        this.register(hapiSwagger, {
+          info: {
+            title: name(),
+            version: version(),
+          },
+        }),
+      ])
+    }
+
+    // for pm2
+    await this.register(pm2ZeroDownTime)
 
     const {db} = await this.register(lowDB)
     await this.register(controllersRoutes, {routes, context: {lowDB: db}})
 
-    await this.register(hapiSwagger, {
-      info: {
-        title: name(),
-        version: version(),
-      },
-    })
+    // this.server.route(routes)
 
+    // start server
     try{
       await this.server.start()
     }catch(error){

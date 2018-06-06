@@ -26,13 +26,13 @@ module.exports = function(config) {
       './test/specs/**/*.ts': ['webpack', 'sourcemap'],
     },
     coverageReporter: {
-      type: 'in-memory'
+      type: 'in-memory',
     },
     remapCoverageReporter: {
       'text-summary': null,
       lcovonly: './coverage/lcov.info',
       html: './coverage/html',
-      cobertura: './coverage/cobertura.xml'
+      cobertura: './coverage/cobertura.xml',
     },
     webpack,
     webpackMiddleware: {
@@ -49,6 +49,6 @@ module.exports = function(config) {
     mime: {
       'text/x-typescript': ['ts'],
     },
-    singleRun: false
+    singleRun: false,
   })
 }

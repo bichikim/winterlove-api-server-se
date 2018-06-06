@@ -10,6 +10,6 @@ module.exports = webpackMerge(WebpackBaseConfig, {
   watch: true,
   watchOptions: {
     aggregateTimeout: 300,
-    poll: 1000
-  }
+    poll: 1000,
+  },
 })

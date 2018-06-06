@@ -7,7 +7,7 @@
   "types": "types.ts",
   "license": "MIT",
   "scripts": {
-    "dev": "npm-run-all -p build:dev start:dev",
+    "dev": "cross-env NODE_END=development npm-run-all -p build:dev start:dev",
     "start": "pm2 start config/ecosystem.config.js",
     "start:watch": "pm2 start config/ecosystem.config.js --watch",
     "start:dev": "nodemon dist/app.js",
@@ -100,6 +100,8 @@
   },
   "dependencies": {
     "bell": "^9.3.1",
+    "boom": "^7.2.0",
+    "cross-env": "^5.1.6",
     "hapi": "^17.5.1",
     "hapi-auth-jwt2": "^8.1.0",
     "hapi-swagger": "^9.1.1",
