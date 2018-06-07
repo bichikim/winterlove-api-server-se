@@ -2,16 +2,17 @@ import controllersRoutes from '@/plugins/controllers-routes/'
 import lowDB from '@/plugins/low-db'
 import pm2ZeroDownTime from '@/plugins/pm2-zero-down-time'
 import routes from '@/routes'
+import {IAPIServer} from '@/types'
 import getArgv from '@/util/getArgv'
+import getPluginPkg from '@/util/getPluginPkg'
 import {name, version} from '@/util/pkg'
 import Hapi, {Server} from 'hapi'
 import hapiSwagger from 'hapi-swagger'
 import inert from 'inert'
 import vision from 'vision'
-import {IAPIServer} from '@/types'
 const ARGV_SKIP = 2
 
-class APIServer implements IAPIServer {
+class ApiServer implements IAPIServer {
   public readonly server: Server
   public readonly production: boolean
 
@@ -25,26 +26,14 @@ class APIServer implements IAPIServer {
   }
 
   async register(plugin: any, options?: any) {
-    let _name
-    const {name} = plugin
-    if(name){
-      _name = name
-    }else if(plugin.plugin){
-      if(plugin.plugin.name){
-        _name = plugin.plugin.name
-      }else{
-        _name = plugin.plugin.pkg.name
-      }
-    }else{
-      _name = 'unknown'
-    }
+    const {name = 'unknown'} = getPluginPkg(plugin)
     try{
       await this.server.register({plugin, options})
     }catch(error){
 
-      this.server.log(['error', _name, 'register'], 'server cannot resister')
+      this.server.log(['error', name, 'register'], 'server cannot resister')
     }
-    return (this.server.plugins as any)[_name]
+    return (this.server.plugins as any)[name]
   }
 
   async start() {
@@ -89,4 +78,4 @@ class APIServer implements IAPIServer {
 
 }
 
-export default APIServer
+export default ApiServer

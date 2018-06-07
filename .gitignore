@@ -7,6 +7,9 @@ flow-typed/npm/
 public/
 dist/
 
+##.nyc trmp-direcotry
+.nyc_output/
+
 ## docs
 docs/
 
@@ -18,7 +21,7 @@ docs/
 npm-debug.log*
 yarn-debug.log*
 yarn-error.log*
-coverage/
+.coverage/
 debug.log*
 
 

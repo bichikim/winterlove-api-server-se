@@ -15,14 +15,28 @@
     "restart": "pm2 restart config/ecosystem.config.js",
     "reload": "pm2 reload config/ecosystem.config.js",
     "delete": "pm2 delete config/ecosystem.config.js",
-    "processes": "pm2 list",
+    "processes": "pm2 list config/ecosystem.config.js",
     "build": "babel-node build",
     "build:dev": "babel-node build/dev",
     "doc": "typedoc -out ./docs ./src --media ./media",
     "deploy": "??",
-    "test": "npm run test:unit",
-    "test:unit": "mocha-webpack \"src/**/*.spec.js\" --webpack-config config/webpack.test.config.js --timeout 3000 --recursive --require build/chai.js --watch",
-    "test:karma": "karma start config/karma.config.js --browsers=ChromeWithoutSecurity --single-run"
+    "test": "yarn run test:unit",
+    "test:unit:watch": "yarn run test-ci:unit --watch",
+    "test:unit": "mocha-webpack \"src/**/*.spec.js\" --webpack-config config/webpack.test.config.js --timeout 3000 --recursive --require build/chai.js",
+    "cover": "nyc --reporter=lcov --reporter=text yarn run test:unit"
+  },
+  "nyc": {
+    "include": [
+      "src/**/*.js",
+      "src/**/*.ts"
+    ],
+    "reporter": [
+      "lcov",
+      "text-summary"
+    ],
+    "report-dir": "./.coverage",
+    "instrument": false,
+    "sourceMap": false
   },
   "repository": {
     "type": "git",
@@ -86,7 +100,7 @@
     "mocha-webpack": "^2.0.0-beta.0",
     "nodemon": "^1.17.5",
     "npm-run-all": "^4.1.3",
-    "nps": "^5.9.0",
+    "nyc": "^12.0.2",
     "sinon": "^5.0.10",
     "ts-loader": "^4.3.0",
     "ts-node": "^6.1.0",

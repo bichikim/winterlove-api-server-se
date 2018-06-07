@@ -1,11 +1,11 @@
 import {IOptions, IController} from './types'
+import {IContext} from '@/types'
 import capitalize from 'lodash/capitalize'
 import {Plugin} from 'hapi'
-
 const plugin: Plugin<IOptions<any>> = {
   name: 'controllersRoutes',
   version: '0.0.1',
-  register: function(server, options: IOptions<any> = {}) {
+  register: function(server, options: IOptions<IContext> = {}) {
     const {
       controllers = [],
       routes = [],
@@ -13,7 +13,7 @@ const plugin: Plugin<IOptions<any>> = {
       bindRoutes = true,
     } = options
 
-    const controllerInstances: {[name: string]: IController<any>} = {}
+    const controllerInstances: {[name: string]: IController<IContext>} = {}
     controllers.forEach((Controller: any) => {
       controllerInstances[Controller.name] = new Controller(server, context)
     })
