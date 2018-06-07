@@ -1,8 +1,8 @@
 import {Server} from 'hapi'
-import APIServer from '@/APIServer'
+import ApiServer from '@/ApiServer'
 import {name, version} from '@/util/pkg'
 
-const server = new APIServer()
+const server = new ApiServer()
 
 server.start().then((server: Server) => {
   if(process.env.NODE_ENV === 'production'){return}
