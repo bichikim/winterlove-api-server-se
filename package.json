@@ -2,7 +2,7 @@
   "name": "winter-love-server-se",
   "version": "0.0.1",
   "description": "A quick way to start hapi server with typescriptp",
-  "author": "bichi",
+  "author": "bichi <bichi@live.co.kr>",
   "main": "dist/app.js",
   "types": "types.ts",
   "license": "MIT",
@@ -40,15 +40,15 @@
   },
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/bichikim/my-typescript.git"
+    "url": "git+https://github.com/bichikim/winter-love-server-se.git"
   },
   "keywords": [
     "typescript"
   ],
   "bugs": {
-    "url": "https://github.com/bichikim/my-typescript/issues"
+    "url": "https://github.com/bichikim/winter-love-server-se/issues"
   },
-  "homepage": "https://github.com/bichikim/my-typescript#readme",
+  "homepage": "https://github.com/bichikim/winter-love-server-se#readme",
   "devDependencies": {
     "@types/chai": "^4.1.3",
     "@types/hapi": "^17.0.12",
