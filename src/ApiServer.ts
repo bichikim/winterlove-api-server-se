@@ -2,14 +2,17 @@ import controllersRoutes from '@/plugins/controllers-routes/'
 import lowDB from '@/plugins/low-db'
 import pm2ZeroDownTime from '@/plugins/pm2-zero-down-time'
 import routes from '@/routes'
-import {IAPIServer} from '@/types'
+import {IAPIServer, IStartOptions} from '@/types'
 import getArgv from '@/util/getArgv'
 import getPluginPkg from '@/util/getPluginPkg'
 import {name, version} from '@/util/pkg'
+import {graphqlHapi} from 'apollo-server-hapi'
 import Hapi, {Server} from 'hapi'
 import hapiSwagger from 'hapi-swagger'
 import inert from 'inert'
 import vision from 'vision'
+
+// const
 const ARGV_SKIP = 2
 
 class ApiServer implements IAPIServer {
@@ -36,7 +39,21 @@ class ApiServer implements IAPIServer {
     return (this.server.plugins as any)[name]
   }
 
-  async start() {
+  /**
+   * start server with options
+   * @param {IStartOptions} options
+   * @returns {Promise<Server>}
+   */
+  async start(options: IStartOptions = {}) {
+    const {plugins = []} = options
+    const registers = []
+
+    // register plugins in options
+    for(let plugin of plugins){
+      registers.push(this.register(plugin))
+    }
+
+    await Promise.all(registers)
 
     // this is for dev mode
     if(!this.production){
@@ -44,17 +61,22 @@ class ApiServer implements IAPIServer {
       await Promise.all([
         this.register(inert),
         this.register(vision),
-        this.register(hapiSwagger, {
-          info: {
-            title: name(),
-            version: version(),
-          },
-        }),
       ])
     }
 
-    // for pm2
-    await this.register(pm2ZeroDownTime)
+    await Promise.all([
+      this.register(hapiSwagger, {
+        info: {
+          title: name(),
+          version: version(),
+        },
+        documentationPage: !this.production,
+        swaggerUI: !this.production,
+      }),
+      this.register(graphqlHapi),
+      // for pm2
+      this.register(pm2ZeroDownTime),
+    ])
 
     const {db} = await this.register(lowDB)
     await this.register(controllersRoutes, {routes, context: {lowDB: db}})

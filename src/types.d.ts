@@ -1,13 +1,17 @@
-import {Server, HandlerDecorations, Lifecycle, ServerRoute} from 'hapi'
+import {Server, HandlerDecorations, Lifecycle, ServerRoute, Plugin} from 'hapi'
 import {Schema} from 'Joi'
 import {LowdbAsync} from 'lowdb'
+
+declare interface IStartOptions {
+  plugins?: Plugin<any>[]
+}
 
 declare interface IAPIServer {
   readonly server: Server
 
   register(plugin: any, options?: any): Promise<any>
 
-  start(): Promise<Server>
+  start(options?: IStartOptions): Promise<Server>
 
   stop(options?: {timeout: number}): void
 }
@@ -35,5 +39,5 @@ declare interface IServerRoute extends ServerRoute{
 }
 
 interface IContext {
-  lowDB: LowdbAsync<any>
+  lowDB(): LowdbAsync<any>
 }

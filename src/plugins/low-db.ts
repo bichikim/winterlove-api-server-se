@@ -1,4 +1,4 @@
-import {Plugin, ServerRoute} from 'hapi'
+import {Plugin, Server, ServerRoute} from 'hapi'
 import Database from 'lowdb'
 import FileAsync from 'lowdb/adapters/FileAsync'
 interface IOptions {
@@ -9,16 +9,21 @@ interface IOptions {
 const plugin: Plugin<IOptions> = {
   name: 'lowDB',
   version: '0.0.1',
-  register: async function(server, options = {}) {
+  register: async function(server: Server, options: IOptions = {}) {
     const {
       name = './.db/db.json',
       init = {docs: [], info: 'unset', auth: []},
     } = options
-    const adapter = new FileAsync(name)
-    const db = await Database(adapter)
+    const lowDB = async () => {
+      const adapter = new FileAsync(name)
+      // eslint-disable-next-line no-return-await
+      return await Database(adapter)
+    }
+
+    const db = await lowDB()
     db.defaults(init).write()
     server.expose({
-      db,
+      db: lowDB,
     })
   },
 }
