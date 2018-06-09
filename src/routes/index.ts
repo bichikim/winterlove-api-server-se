@@ -91,19 +91,21 @@ const routers: IServerRoute[]  = [
           ok: Joi.boolean(),
         },
       },
-      handler: async function(request: Request, h: ResponseToolkit) {
+      handler: async function(request: Request) {
         const {title, description, ok = false} = request.payload as any
         if(!title || !description){
           return {status: 'error'}
         }
-        const db = await this.lowDB
-        const {length} = db.get('docs').value()
+        const db = await this.lowDB()
+        const time = Date.now()
+        const doc = {
+          time, id: time, title, description, ok,
+        }
         await db.get('docs')
-          .push({title, description, ok})
+          .push(doc)
           .last()
-          .assign({time: Date.now().toString(), id: length})
           .write()
-        return h.response()
+        return doc
       },
     },
 
@@ -153,7 +155,7 @@ const routers: IServerRoute[]  = [
       },
       handler: async function(request: Request, h: ResponseToolkit) {
         const {id, ok} = request.payload as any
-        const db = await this.lowDB
+        const db = await this.lowDB()
         const doc = await db.get('docs').find({id})
         if(doc){
           await doc.assign({ok}).write()
@@ -176,7 +178,7 @@ const routers: IServerRoute[]  = [
       },
       handler: async function(request: Request, h: ResponseToolkit) {
         const {id} = request.payload as any
-        const db = await this.lowDB
+        const db = await this.lowDB()
         await db.get('docs').remove({id}).write()
         return h.response()
       },
