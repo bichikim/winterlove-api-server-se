@@ -1,9 +1,9 @@
-import {object, string} from 'joi'
+import Joi from 'joi'
 
-export const name = string()
-export const email = string().email()
+export const name = Joi.string()
+export const email = Joi.string().email()
 
-export const user = object({
+export const user = Joi.object({
   name: name.required(),
   email: email.required(),
 })

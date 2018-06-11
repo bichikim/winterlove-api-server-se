@@ -138,6 +138,7 @@
     "mongoose": "^5.1.4",
     "mongoose-schema-to-graphql": "^2.7.2",
     "pm2": "^2.10.4",
+    "require-all": "^2.2.0",
     "vision": "^5.3.3"
   }
 }

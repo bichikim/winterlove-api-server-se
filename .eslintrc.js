@@ -135,7 +135,7 @@ module.exports = {
     'no-proto': 'error',
     'no-prototype-builtins': 'error',
     'no-return-assign': 'error',
-    'no-return-await': 'error',
+    // 'no-return-await': 'error',
     'no-script-url': 'error',
     'no-self-compare': 'error',
     'no-sequences': 'error',

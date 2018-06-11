@@ -1,6 +1,6 @@
 import parseArgs from 'minimist'
 
-export interface IServerOptions {
+export interface IArgvServerOptions {
   protocol?: string
   port?: number
   host?: string
@@ -16,7 +16,7 @@ function number(data: number, defaultData: number) {
   return num
 }
 
-export default function getArgv(_argv: any): IServerOptions {
+export default function getArgv(_argv: any): IArgvServerOptions {
   const defaults = {
     port: 8080,
     host: 'localhost',
@@ -45,4 +45,3 @@ export default function getArgv(_argv: any): IServerOptions {
     port, host, cert, key, protocol,
   }
 }
-

@@ -1,10 +1,10 @@
-import {boolean, object, string} from 'joi'
+import Joi from 'joi'
 
-export const title = string()
-export const description = string()
-export const ok = boolean()
+export const title = Joi.string()
+export const description = Joi.string()
+export const ok = Joi.boolean()
 
-export const doc = object({
+export const doc = Joi.object().keys({
   title: title.required(),
   description: description.required(),
   ok,

@@ -1,27 +1,10 @@
 import {
   HandlerDecorations,
   Lifecycle,
-  Server,
-  ServerRegisterPluginObject,
   ServerRoute,
 } from 'hapi'
 import {Schema} from 'Joi'
 import {LowdbAsync} from 'lowdb'
-
-declare interface IStartOptions {
-  plugins?: Array<ServerRegisterPluginObject<any>>
-  mongoose?: string | boolean
-}
-
-declare interface IAPIServer {
-  readonly server: Server
-
-  register(plugin: any, options?: any): Promise<any>
-
-  start(options?: IStartOptions): Promise<Server>
-
-  stop(options?: {timeout: number}): void
-}
 
 declare interface IServerRoute extends ServerRoute{
   config?: {

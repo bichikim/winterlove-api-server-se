@@ -1,15 +1,19 @@
 import controllersRoutes from '@/plugins/controllers-routes/'
 import lowDB from '@/plugins/low-db'
+import mongooseGraphqlJoi, {
+  IGraphqlTypeConfig,
+  TResolverFactory,
+} from '@/plugins/mongoose-graphql-joi'
 import pm2ZeroDownTime from '@/plugins/pm2-zero-down-time'
 import routes from '@/routes'
-import {IAPIServer, IStartOptions} from '@/types'
-import getArgv from '@/util/getArgv'
+import getArgv, {IArgvServerOptions} from '@/util/getArgv'
 import getPluginPkg from '@/util/getPluginPkg'
 import {name, version} from '@/util/pkg'
-import {graphiqlHapi, graphqlHapi} from 'apollo-server-hapi'
 import Hapi, {Server} from 'hapi'
+import {ServerRegisterPluginObject} from 'hapi'
 import hapiSwagger from 'hapi-swagger'
 import inert from 'inert'
+import {Schema as JoiSchema} from 'joi'
 import mongoose from 'mongoose'
 import {resolve} from 'path'
 import vision from 'vision'
@@ -23,12 +27,39 @@ global.__root = resolve(__dirname, '../')
 // const
 const ARGV_SKIP = 2
 
-class ApiServer implements IAPIServer {
+export interface IServerOptions extends IStartOptions, IArgvServerOptions{
+}
+
+export interface IStartOptions {
+  jois?: {[name: string]: JoiSchema}
+  types?: IGraphqlTypeConfig[]
+  resolvers?: TResolverFactory[]
+  plugins?: Array<ServerRegisterPluginObject<any>>
+  mongooseUrl?: string
+}
+
+export interface IAPIServer {
+  readonly server: Server
+
+  register(plugin: any, options?: any): Promise<any>
+
+  start(options?: IStartOptions): Promise<Server>
+
+  stop(options?: {timeout: number}): void
+}
+
+export default class ApiServer implements IAPIServer {
   public readonly server: Server
   public readonly production: boolean
+  public readonly jois: {[name: string]: JoiSchema}
+  public readonly types: IGraphqlTypeConfig[]
+  public readonly resolvers: TResolverFactory[]
+  public readonly mongooseUrl: string
+  public readonly plugins: Array<ServerRegisterPluginObject<any>>
 
-  constructor(options: any = {}) {
-    const serverOptions = Object.assign(getArgv(process.argv.slice(ARGV_SKIP)), options)
+  constructor(options: IServerOptions = {}) {
+    const {jois, types, resolvers, mongooseUrl, plugins, ...others} = options
+    const serverOptions = Object.assign(getArgv(process.argv.slice(ARGV_SKIP)), others)
     const {port, host} = serverOptions
 
     this.server = new Hapi.Server({
@@ -36,6 +67,12 @@ class ApiServer implements IAPIServer {
     })
 
     this.production = !process.env.NODE_END || process.env.NODE_END === 'production'
+
+    this.jois = jois
+    this.types = types
+    this.resolvers = resolvers
+    this.plugins = plugins
+    this.mongooseUrl = mongooseUrl
   }
 
   async register(plugin: any, options?: any) {
@@ -55,9 +92,16 @@ class ApiServer implements IAPIServer {
    * @returns {Promise<Server>}
    */
   async start(options: IStartOptions = {}) {
-    const {plugins = [], mongoose: _mongoose = 'mongodb://localhost:27017/db'} = options
-    if(_mongoose){
-      await mongoose.connect(String(_mongoose))
+    const {
+      mongooseUrl = this.mongooseUrl,
+      plugins: _plugins = [],
+      jois = this.jois,
+      types = this.types,
+      resolvers = this.resolvers,
+    } = options
+    const plugins = _plugins.concat(this.plugins || [])
+    if(mongooseUrl){
+      await mongoose.connect(String(mongooseUrl))
     }
 
     const registers = []
@@ -79,7 +123,6 @@ class ApiServer implements IAPIServer {
       await Promise.all([
         this.register(inert),
         this.register(vision),
-        this.register(graphiqlHapi),
       ])
     }
 
@@ -95,12 +138,17 @@ class ApiServer implements IAPIServer {
         documentationPage: !this.production,
         swaggerUI: !this.production,
       }),
-      this.register(graphqlHapi, {
-
-      }),
       // for pm2
       this.register(pm2ZeroDownTime),
     ])
+
+    if(jois && types && resolvers){
+      await this.register(mongooseGraphqlJoi, {
+        jois,
+        types,
+        resolvers,
+      })
+    }
 
     const {db} = await this.register(lowDB)
     await this.register(controllersRoutes, {routes, context: {lowDB: db}})
@@ -123,5 +171,3 @@ class ApiServer implements IAPIServer {
   }
 
 }
-
-export default ApiServer
