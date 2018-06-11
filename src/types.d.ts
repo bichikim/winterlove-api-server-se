@@ -1,9 +1,16 @@
-import {Server, HandlerDecorations, Lifecycle, ServerRoute, Plugin} from 'hapi'
+import {
+  Server,
+  HandlerDecorations,
+  Lifecycle,
+  ServerRoute,
+  ServerRegisterPluginObject,
+} from 'hapi'
 import {Schema} from 'Joi'
 import {LowdbAsync} from 'lowdb'
 
 declare interface IStartOptions {
-  plugins?: Plugin<any>[]
+  plugins?: ServerRegisterPluginObject<any>[]
+  mongoose?: string | boolean
 }
 
 declare interface IAPIServer {

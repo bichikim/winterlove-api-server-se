@@ -1,7 +1,5 @@
-/**
- *
- * @author Bichi Kim <bichi@live.co.kr>
- */
+// declare file extension should be here
+
 declare module '*.json' {
   const value: {[name: string]: any}
   export default value
@@ -15,4 +13,9 @@ declare module '*.png' {
 declare module '*.svg' {
   const content: any
   export default content
+}
+
+declare module '*.graphql' {
+  const graphql: any
+  export default graphql
 }

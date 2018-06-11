@@ -3,14 +3,22 @@ import lowDB from '@/plugins/low-db'
 import pm2ZeroDownTime from '@/plugins/pm2-zero-down-time'
 import routes from '@/routes'
 import {IAPIServer, IStartOptions} from '@/types'
+import mongoose from 'mongoose'
 import getArgv from '@/util/getArgv'
 import getPluginPkg from '@/util/getPluginPkg'
 import {name, version} from '@/util/pkg'
-import {graphqlHapi} from 'apollo-server-hapi'
+import {graphqlHapi, graphiqlHapi} from 'apollo-server-hapi'
 import Hapi, {Server} from 'hapi'
 import hapiSwagger from 'hapi-swagger'
 import inert from 'inert'
 import vision from 'vision'
+import {resolve} from 'path'
+if(!global.__src || !global.__root){
+  throw new Error('[ApiServer] global.__src or global.__root is already taken')
+}
+global.__src = resolve(__dirname, './')
+global.__root = resolve(__dirname, '../')
+
 
 // const
 const ARGV_SKIP = 2
@@ -22,9 +30,11 @@ class ApiServer implements IAPIServer {
   constructor(options: any = {}) {
     const serverOptions = Object.assign(getArgv(process.argv.slice(ARGV_SKIP)), options)
     const {port, host} = serverOptions
+
     this.server = new Hapi.Server({
       port, host,
     })
+
     this.production = !process.env.NODE_END || process.env.NODE_END === 'production'
   }
 
@@ -45,25 +55,37 @@ class ApiServer implements IAPIServer {
    * @returns {Promise<Server>}
    */
   async start(options: IStartOptions = {}) {
-    const {plugins = []} = options
+    const {plugins = [], mongoose: _mongoose = 'mongodb://localhost:27017/db'} = options
+    if(_mongoose){
+      await mongoose.connect(String(_mongoose))
+    }
+
     const registers = []
 
+    ///////////////////////////////
     // register plugins in options
+    //////////////////////////////
     for(let plugin of plugins){
-      registers.push(this.register(plugin))
+      registers.push(this.register(plugin.plugin), plugin.options)
     }
 
     await Promise.all(registers)
 
-    // this is for dev mode
+    ////////////////////////////
+    // register for dev mode
+    ///////////////////////////
     if(!this.production){
       // for hapi-Swagger
       await Promise.all([
         this.register(inert),
         this.register(vision),
+        this.register(graphiqlHapi),
       ])
     }
 
+    ///////////////////////////
+    // register default plugins
+    //////////////////////////
     await Promise.all([
       this.register(hapiSwagger, {
         info: {
@@ -73,7 +95,9 @@ class ApiServer implements IAPIServer {
         documentationPage: !this.production,
         swaggerUI: !this.production,
       }),
-      this.register(graphqlHapi),
+      this.register(graphqlHapi, {
+
+      }),
       // for pm2
       this.register(pm2ZeroDownTime),
     ])

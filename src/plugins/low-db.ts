@@ -9,7 +9,7 @@ interface IOptions {
 const plugin: Plugin<IOptions> = {
   name: 'lowDB',
   version: '0.0.1',
-  register: async function(server: Server, options: IOptions = {}) {
+  register: async (server: Server, options: IOptions = {}) => {
     const {
       name = './.db/db.json',
       init = {docs: [], info: 'unset', auth: []},

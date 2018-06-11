@@ -4,7 +4,7 @@ describe('APIServer', () => {
   describe('start & stop', () => {
     it('should start server', (done) => {
       expect(server.start).to.be.a('function')
-      server.start().then((_server) => {
+      server.start({mongoose: false}).then((_server) => {
         expect(_server).to.be.an('object')
         expect(_server.info.address).to.equal('127.0.0.1')
         expect(_server.info.port).to.equal(3000)

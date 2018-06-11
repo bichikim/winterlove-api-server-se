@@ -59,4 +59,8 @@ module.exports = {
     ],
   },
   externals: [nodeExternals()],
+  node: {
+    __filename: true,
+    __dirname: true,
+  },
 }

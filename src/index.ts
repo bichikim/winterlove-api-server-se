@@ -4,7 +4,7 @@ import * as pkg from '@/util/pkg'
 
 const server = new ApiServer()
 
-server.start().then((server: Server) => {
+server.start({mongoose: false}).then((server: Server) => {
   if(process.env.NODE_ENV === 'production'){return}
   const {version, info: {protocol, address, port} = {} as any} = server
   console.log(
