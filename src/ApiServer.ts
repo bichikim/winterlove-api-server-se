@@ -13,8 +13,9 @@ import hapiSwagger from 'hapi-swagger'
 import inert from 'inert'
 import vision from 'vision'
 import {resolve} from 'path'
-if(!global.__src || !global.__root){
-  throw new Error('[ApiServer] global.__src or global.__root is already taken')
+const className = 'ApiServer'
+if(global.__src || global.__root){
+  console.warn(`[${className}] global.__src or global.__root is already taken`)
 }
 global.__src = resolve(__dirname, './')
 global.__root = resolve(__dirname, '../')
