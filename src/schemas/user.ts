@@ -1,4 +1,4 @@
-import {string, object} from 'joi'
+import {object, string} from 'joi'
 
 export const name = string()
 export const email = string().email()

@@ -16,7 +16,7 @@ export class Controller<T> implements IController<T> {
 }
 
 export interface IOptions<T> {
-  controllers?: IController<T>[]
+  controllers?: Array<IController<T>>
   routes?: ServerRoute[]
   context?: T
   bindRoutes?: boolean

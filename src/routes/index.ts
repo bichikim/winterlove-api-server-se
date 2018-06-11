@@ -1,6 +1,6 @@
+import {IServerRoute} from '@/types'
 import {Request, ResponseToolkit} from 'hapi'
 import Joi from 'joi'
-import {IServerRoute} from '@/types'
 
 const routers: IServerRoute[]  = [
   {
@@ -15,7 +15,7 @@ const routers: IServerRoute[]  = [
           data: Joi.string().required().description('info data'),
         }),
       },
-      handler: async function() {
+      async handler() {
         const db = await this.lowDB()
         return {
           data: db.get('info').value(),
@@ -35,7 +35,7 @@ const routers: IServerRoute[]  = [
           data: Joi.string().required(),
         },
       },
-      handler: async function(request: Request, h: ResponseToolkit) {
+      async handler(request: Request, h: ResponseToolkit) {
         const {data} = request.payload as any
         const db = await this.lowDB()
         await db.set('info', data).write()
@@ -67,7 +67,7 @@ const routers: IServerRoute[]  = [
           })).required(),
         }),
       },
-      handler: async function(request: Request) {
+      async handler(request: Request) {
         // eslint-disable-next-line no-magic-numbers
         const {offset = 0, take = 5} = request.query as any
         const db = await this.lowDB()
@@ -91,7 +91,7 @@ const routers: IServerRoute[]  = [
           ok: Joi.boolean(),
         },
       },
-      handler: async function(request: Request) {
+      async handler(request: Request) {
         const {title, description, ok = false} = request.payload as any
         if(!title || !description){
           return {status: 'error'}
@@ -125,7 +125,7 @@ const routers: IServerRoute[]  = [
           ok: Joi.boolean(),
         },
       },
-      handler: async function(request: Request, h: ResponseToolkit) {
+      async handler(request: Request, h: ResponseToolkit) {
         const {id, title, description, ok} = request.payload as any
         const db = await this.lowDB()
         const doc = await db.get('docs').find({id})
@@ -153,7 +153,7 @@ const routers: IServerRoute[]  = [
           ok: Joi.boolean(),
         },
       },
-      handler: async function(request: Request, h: ResponseToolkit) {
+      async handler(request: Request, h: ResponseToolkit) {
         const {id, ok} = request.payload as any
         const db = await this.lowDB()
         const doc = await db.get('docs').find({id})
@@ -176,7 +176,7 @@ const routers: IServerRoute[]  = [
           id: Joi.number().required(),
         },
       },
-      handler: async function(request: Request, h: ResponseToolkit) {
+      async handler(request: Request, h: ResponseToolkit) {
         const {id} = request.payload as any
         const db = await this.lowDB()
         await db.get('docs').remove({id}).write()
@@ -185,6 +185,5 @@ const routers: IServerRoute[]  = [
     },
   },
 ]
-
 
 export default routers

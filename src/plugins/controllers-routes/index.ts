@@ -1,11 +1,11 @@
-import {IOptions, IController} from './types'
 import {IContext} from '@/types'
-import capitalize from 'lodash/capitalize'
 import {Plugin} from 'hapi'
+import capitalize from 'lodash/capitalize'
+import {IController, IOptions} from './types'
 const plugin: Plugin<IOptions<any>> = {
   name: 'controllersRoutes',
   version: '0.0.1',
-  register: function(server, options: IOptions<IContext> = {}) {
+  register(server, options: IOptions<IContext> = {}) {
     const {
       controllers = [],
       routes = [],
@@ -14,8 +14,8 @@ const plugin: Plugin<IOptions<any>> = {
     } = options
 
     const controllerInstances: {[name: string]: IController<IContext>} = {}
-    controllers.forEach((Controller: any) => {
-      controllerInstances[Controller.name] = new Controller(server, context)
+    controllers.forEach((controller: any) => {
+      controllerInstances[controller.name] = new controller(server, context)
     })
     const handler = (route: any, options: any) => {
       if(!options){return}
@@ -35,7 +35,7 @@ const plugin: Plugin<IOptions<any>> = {
       const _controller = controllerInstances[controllerName]
       if(!_controller){
         throw new Error(
-          `[controllers-routes] cannot find controller. options is ${options}`
+          `[controllers-routes] cannot find controller. options is ${options}`,
         )
       }
       const handle = _controller[methodName]

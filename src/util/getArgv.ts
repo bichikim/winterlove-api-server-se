@@ -45,4 +45,4 @@ export default function getArgv(_argv: any): IServerOptions {
     port, host, cert, key, protocol,
   }
 }
-
+

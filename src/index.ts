@@ -1,6 +1,6 @@
-import {Server} from 'hapi'
 import ApiServer from '@/ApiServer'
 import * as pkg from '@/util/pkg'
+import {Server} from 'hapi'
 
 const server = new ApiServer()
 

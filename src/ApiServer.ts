@@ -3,23 +3,22 @@ import lowDB from '@/plugins/low-db'
 import pm2ZeroDownTime from '@/plugins/pm2-zero-down-time'
 import routes from '@/routes'
 import {IAPIServer, IStartOptions} from '@/types'
-import mongoose from 'mongoose'
 import getArgv from '@/util/getArgv'
 import getPluginPkg from '@/util/getPluginPkg'
 import {name, version} from '@/util/pkg'
-import {graphqlHapi, graphiqlHapi} from 'apollo-server-hapi'
+import {graphiqlHapi, graphqlHapi} from 'apollo-server-hapi'
 import Hapi, {Server} from 'hapi'
 import hapiSwagger from 'hapi-swagger'
 import inert from 'inert'
-import vision from 'vision'
+import mongoose from 'mongoose'
 import {resolve} from 'path'
+import vision from 'vision'
 const className = 'ApiServer'
 if(global.__src || global.__root){
   console.warn(`[${className}] global.__src or global.__root is already taken`)
 }
 global.__src = resolve(__dirname, './')
 global.__root = resolve(__dirname, '../')
-
 
 // const
 const ARGV_SKIP = 2

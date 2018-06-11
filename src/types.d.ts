@@ -1,15 +1,15 @@
 import {
-  Server,
   HandlerDecorations,
   Lifecycle,
-  ServerRoute,
+  Server,
   ServerRegisterPluginObject,
+  ServerRoute,
 } from 'hapi'
 import {Schema} from 'Joi'
 import {LowdbAsync} from 'lowdb'
 
 declare interface IStartOptions {
-  plugins?: ServerRegisterPluginObject<any>[]
+  plugins?: Array<ServerRegisterPluginObject<any>>
   mongoose?: string | boolean
 }
 
@@ -31,17 +31,17 @@ declare interface IServerRoute extends ServerRoute{
     response?: {}
     validate?: {
       payload?: {
-        [name: string]: Schema
+        [name: string]: Schema,
       }
       params?: {
-        [name: string]: Schema
+        [name: string]: Schema,
       },
       query?: {
-        [name: string]: Schema
+        [name: string]: Schema,
       }
-      headers?: Schema
+      headers?: Schema,
     }
-    handler: Lifecycle.Method | HandlerDecorations
+    handler: Lifecycle.Method | HandlerDecorations,
   }
 }
 

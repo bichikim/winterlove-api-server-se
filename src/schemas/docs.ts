@@ -1,4 +1,4 @@
-import {string, boolean, object} from 'joi'
+import {boolean, object, string} from 'joi'
 
 export const title = string()
 export const description = string()

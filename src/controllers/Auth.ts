@@ -1,7 +1,7 @@
 import {Controller} from '@/plugins/controllers-routes/types'
-import {Request, ResponseToolkit} from 'hapi'
 import {IContext} from '@/types'
 import Boom from 'boom'
+import {Request, ResponseToolkit} from 'hapi'
 export default class Auth extends Controller<IContext> {
 
   async login(request: Request, h: ResponseToolkit) {

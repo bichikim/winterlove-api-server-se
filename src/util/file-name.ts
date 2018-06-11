@@ -2,7 +2,7 @@ import {camelCase, upperFirst} from 'lodash'
 
 export const name = (fileName: string) => {
   return camelCase(
-    fileName.replace(/^\.\//, '').replace(/\.\w+$/, '')
+    fileName.replace(/^\.\//, '').replace(/\.\w+$/, ''),
   )
 }
 

@@ -24,7 +24,7 @@ const plugin: Plugin<IOptions> = {
   version: '0.0.1',
   register: async (server: Server, options: IOptions = {}) => {
     const {
-      schemasPath = './models',
+      schemasPath = 'schemas',
       types = [],
       location = 'mongodb://localhost:27017/db',
       path = '/graphql',
