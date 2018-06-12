@@ -1,23 +1,9 @@
-import {Server, ServerRoute} from 'hapi'
+import {ServerRoute} from 'hapi'
+import {Controller} from './'
 
-export interface IController<T> {
-  server: Server
-  context: T
-  [name: string]: any
-}
-
-export class Controller<T> implements IController<T> {
-  public readonly server: Server
-  public readonly context: T
-  constructor(server: Server, context: T) {
-    this.server = server
-    this.context = context
-  }
-}
-
-export interface IOptions<T> {
-  controllers?: IController<T>[]
+export interface IOptions<C, M> {
+  controllers?: {[name: string]: typeof Controller}
   routes?: ServerRoute[]
-  context?: T
+  context?: C
   bindRoutes?: boolean
 }

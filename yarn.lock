@@ -579,12 +579,12 @@ ajv@^5.0.0, ajv@^5.1.0, ajv@^5.2.3, ajv@^5.3.0:
     json-schema-traverse "^0.3.0"
 
 ajv@^6.1.0:
-  version "6.5.0"
-  resolved "https://registry.yarnpkg.com/ajv/-/ajv-6.5.0.tgz#4c8affdf80887d8f132c9c52ab8a2dc4d0b7b24c"
+  version "6.5.1"
+  resolved "https://registry.yarnpkg.com/ajv/-/ajv-6.5.1.tgz#88ebc1263c7133937d108b80c5572e64e1d9322d"
   dependencies:
     fast-deep-equal "^2.0.1"
     fast-json-stable-stringify "^2.0.0"
-    json-schema-traverse "^0.3.0"
+    json-schema-traverse "^0.4.1"
     uri-js "^4.2.1"
 
 align-text@^0.1.1, align-text@^0.1.3:
@@ -1154,8 +1154,8 @@ babel-plugin-inline-import@^3.0.0:
     require-resolve "0.0.2"
 
 babel-plugin-lodash@^3.3.3:
-  version "3.3.3"
-  resolved "https://registry.yarnpkg.com/babel-plugin-lodash/-/babel-plugin-lodash-3.3.3.tgz#d33436438dcc871f3481a3c3148e5b24e6b80676"
+  version "3.3.4"
+  resolved "https://registry.yarnpkg.com/babel-plugin-lodash/-/babel-plugin-lodash-3.3.4.tgz#4f6844358a1340baed182adbeffa8df9967bc196"
   dependencies:
     "@babel/helper-module-imports" "^7.0.0-beta.49"
     "@babel/types" "^7.0.0-beta.49"
@@ -2211,14 +2211,14 @@ collection-visit@^1.0.0:
     object-visit "^1.0.0"
 
 color-convert@^1.9.0:
-  version "1.9.1"
-  resolved "https://registry.yarnpkg.com/color-convert/-/color-convert-1.9.1.tgz#c1261107aeb2f294ebffec9ed9ecad529a6097ed"
+  version "1.9.2"
+  resolved "https://registry.yarnpkg.com/color-convert/-/color-convert-1.9.2.tgz#49881b8fba67df12a96bdf3f56c0aab9e7913147"
   dependencies:
-    color-name "^1.1.1"
+    color-name "1.1.1"
 
-color-name@^1.1.1:
-  version "1.1.3"
-  resolved "https://registry.yarnpkg.com/color-name/-/color-name-1.1.3.tgz#a7d0558bd89c42f795dd42328f740831ca53bc25"
+color-name@1.1.1:
+  version "1.1.1"
+  resolved "https://registry.yarnpkg.com/color-name/-/color-name-1.1.1.tgz#4b1415304cf50028ea81643643bd82ea05803689"
 
 colors@^1.1.0, colors@^1.1.2:
   version "1.3.0"
@@ -2934,8 +2934,8 @@ escodegen@1.8.x:
     source-map "~0.2.0"
 
 escodegen@1.x.x:
-  version "1.9.1"
-  resolved "https://registry.yarnpkg.com/escodegen/-/escodegen-1.9.1.tgz#dbae17ef96c8e4bedb1356f4504fa4cc2f7cb7e2"
+  version "1.10.0"
+  resolved "https://registry.yarnpkg.com/escodegen/-/escodegen-1.10.0.tgz#f647395de22519fbd0d928ffcf1d17e0dec2603e"
   dependencies:
     esprima "^3.1.3"
     estraverse "^4.2.0"
@@ -3888,8 +3888,8 @@ hash-base@^3.0.0:
     safe-buffer "^5.0.1"
 
 hash.js@^1.0.0, hash.js@^1.0.3:
-  version "1.1.3"
-  resolved "https://registry.yarnpkg.com/hash.js/-/hash.js-1.1.3.tgz#340dedbe6290187151c1ea1d777a3448935df846"
+  version "1.1.4"
+  resolved "https://registry.yarnpkg.com/hash.js/-/hash.js-1.1.4.tgz#8b50e1f35d51bd01e5ed9ece4dbe3549ccfa0a3c"
   dependencies:
     inherits "^2.0.3"
     minimalistic-assert "^1.0.0"
@@ -4012,8 +4012,8 @@ http-signature@~1.2.0:
     sshpk "^1.7.0"
 
 http-status@^1.0.1:
-  version "1.1.2"
-  resolved "https://registry.yarnpkg.com/http-status/-/http-status-1.1.2.tgz#f9c79bf2737afb9da97e20edd8b84731875697f8"
+  version "1.2.0"
+  resolved "https://registry.yarnpkg.com/http-status/-/http-status-1.2.0.tgz#05f2a54c94f94d32d877b3a31ae08479772ba9f1"
 
 httpntlm@1.6.1:
   version "1.6.1"
@@ -4048,8 +4048,8 @@ iconv-lite@0.4.23, iconv-lite@^0.4.17, iconv-lite@^0.4.4:
     safer-buffer ">= 2.1.2 < 3"
 
 ieee754@^1.1.11, ieee754@^1.1.4:
-  version "1.1.11"
-  resolved "https://registry.yarnpkg.com/ieee754/-/ieee754-1.1.11.tgz#c16384ffe00f5b7835824e67b6f2bd44a5229455"
+  version "1.1.12"
+  resolved "https://registry.yarnpkg.com/ieee754/-/ieee754-1.1.12.tgz#50bf24e5b9c8bb98af4964c941cdb0918da7b60b"
 
 iferr@^0.1.5:
   version "0.1.5"
@@ -4679,6 +4679,10 @@ json-schema-traverse@^0.3.0:
   version "0.3.1"
   resolved "https://registry.yarnpkg.com/json-schema-traverse/-/json-schema-traverse-0.3.1.tgz#349a6d44c53a51de89b40805c5d5e59b417d3340"
 
+json-schema-traverse@^0.4.1:
+  version "0.4.1"
+  resolved "https://registry.yarnpkg.com/json-schema-traverse/-/json-schema-traverse-0.4.1.tgz#69f6a87d9513ab8bb8fe63bdb0979c448e684660"
+
 json-schema@0.2.3:
   version "0.2.3"
   resolved "https://registry.yarnpkg.com/json-schema/-/json-schema-0.2.3.tgz#b480c892e59a2f05954ce727bd3f2a4e882f9e13"
@@ -4722,8 +4726,8 @@ jsonpointer@^4.0.0:
   resolved "https://registry.yarnpkg.com/jsonpointer/-/jsonpointer-4.0.1.tgz#4fd92cb34e0e9db3c89c8622ecf51f9b978c6cb9"
 
 jsonwebtoken@^8.1.0:
-  version "8.2.2"
-  resolved "https://registry.yarnpkg.com/jsonwebtoken/-/jsonwebtoken-8.2.2.tgz#76d7993fda79660d71bd0f933109e1f133734b20"
+  version "8.3.0"
+  resolved "https://registry.yarnpkg.com/jsonwebtoken/-/jsonwebtoken-8.3.0.tgz#056c90eee9a65ed6e6c72ddb0a1d325109aaf643"
   dependencies:
     jws "^3.1.5"
     lodash.includes "^4.3.0"
@@ -4734,7 +4738,6 @@ jsonwebtoken@^8.1.0:
     lodash.isstring "^4.0.1"
     lodash.once "^4.0.0"
     ms "^2.1.1"
-    xtend "^4.0.1"
 
 jsprim@^1.2.2:
   version "1.4.1"
@@ -4764,9 +4767,9 @@ jws@^3.1.5:
     jwa "^1.1.5"
     safe-buffer "^5.0.1"
 
-kareem@2.1.0:
-  version "2.1.0"
-  resolved "https://registry.yarnpkg.com/kareem/-/kareem-2.1.0.tgz#d63197b57311830e4ceb3f34431f22f2de826a03"
+kareem@2.2.1:
+  version "2.2.1"
+  resolved "https://registry.yarnpkg.com/kareem/-/kareem-2.2.1.tgz#9950809415aa3cde62ab43b4f7b919d99816e015"
 
 karma-chai@^0.1.0:
   version "0.1.0"
@@ -5442,8 +5445,8 @@ mkdirp@0.5.1, mkdirp@0.5.x, mkdirp@^0.5.0, mkdirp@^0.5.1, mkdirp@~0.5.0:
     minimist "0.0.8"
 
 mocha-typescript@^1.1.15:
-  version "1.1.15"
-  resolved "https://registry.yarnpkg.com/mocha-typescript/-/mocha-typescript-1.1.15.tgz#1b19a515ea105e8f015d1b28bec9490fc7c0355b"
+  version "1.1.16"
+  resolved "https://registry.yarnpkg.com/mocha-typescript/-/mocha-typescript-1.1.16.tgz#74eb0abf5c19be4b9b6e4b7b25c14c0685e49a46"
   dependencies:
     "@types/mocha" "^5.2.0"
     chalk "^2.4.1"
@@ -5520,12 +5523,12 @@ mongoose-schema-to-graphql@^2.7.2:
   resolved "https://registry.yarnpkg.com/mongoose-schema-to-graphql/-/mongoose-schema-to-graphql-2.7.2.tgz#8b439add190c61309a6c18da3ad2799a5abfa4b1"
 
 mongoose@^5.1.4:
-  version "5.1.4"
-  resolved "https://registry.yarnpkg.com/mongoose/-/mongoose-5.1.4.tgz#eda83a5d81149c8114b6cac5e8b419324f92cc4b"
+  version "5.1.5"
+  resolved "https://registry.yarnpkg.com/mongoose/-/mongoose-5.1.5.tgz#0d0b4dc658deeb7ad9794af7453442ecf7fc7cb0"
   dependencies:
     async "2.6.1"
     bson "~1.0.5"
-    kareem "2.1.0"
+    kareem "2.2.1"
     lodash.get "4.4.2"
     mongodb "3.0.9"
     mongoose-legacy-pluralize "1.0.2"
@@ -6883,6 +6886,10 @@ requestretry@^1.2.2:
     lodash "^4.15.0"
     request "^2.74.0"
     when "^3.7.7"
+
+require-all@^2.2.0:
+  version "2.2.0"
+  resolved "https://registry.yarnpkg.com/require-all/-/require-all-2.2.0.tgz#b4420c233ac0282d0ff49b277fb880a8b5de0894"
 
 require-directory@^2.1.1:
   version "2.1.1"
@@ -8518,7 +8525,7 @@ xregexp@2.0.0:
   version "2.0.0"
   resolved "https://registry.yarnpkg.com/xregexp/-/xregexp-2.0.0.tgz#52a63e56ca0b84a7f3a5f3d61872f126ad7a5943"
 
-"xtend@>=4.0.0 <4.1.0-0", xtend@^4.0.0, xtend@^4.0.1, xtend@~4.0.0, xtend@~4.0.1:
+"xtend@>=4.0.0 <4.1.0-0", xtend@^4.0.0, xtend@~4.0.0, xtend@~4.0.1:
   version "4.0.1"
   resolved "https://registry.yarnpkg.com/xtend/-/xtend-4.0.1.tgz#a5c6d532be656e23db820efb943a1f04998d63af"
 

@@ -1,22 +1,26 @@
-import {IOptions, IController} from './types'
-import {IContext} from '@/types'
-import capitalize from 'lodash/capitalize'
-import {Plugin} from 'hapi'
-const plugin: Plugin<IOptions<any>> = {
+import {Plugin, Server} from 'hapi'
+import {camelCase, capitalize, forEach} from 'lodash'
+import Mongoose from 'mongoose'
+import Controller, {IController} from './Controller'
+import {IOptions} from './types'
+export {Controller, IController}
+
+const plugin: Plugin<IOptions<any, any>> = {
   name: 'controllersRoutes',
   version: '0.0.1',
-  register: function(server, options: IOptions<IContext> = {}) {
+  register(server: Server, options: IOptions<any, any> = {}) {
     const {
-      controllers = [],
+      controllers = {},
       routes = [],
       context = {},
       bindRoutes = true,
     } = options
-
-    const controllerInstances: {[name: string]: IController<IContext>} = {}
-    controllers.forEach((Controller: any) => {
-      controllerInstances[Controller.name] = new Controller(server, context)
+    Object.freeze(context)
+    const controllerInstances: any = {}
+    forEach(controllers, (controller: any, key: string) => {
+      controllerInstances[key] = new controller(server, Mongoose.models, context)
     })
+
     const handler = (route: any, options: any) => {
       if(!options){return}
       let {controller, method} = options
@@ -31,20 +35,24 @@ const plugin: Plugin<IOptions<any>> = {
         methodName = method
       }
       controllerName = capitalize(controllerName)
-      methodName = capitalize(methodName)
+      methodName = camelCase(methodName)
       const _controller = controllerInstances[controllerName]
       if(!_controller){
         throw new Error(
-          `[controllers-routes] cannot find controller. options is ${options}`
+          `[controllers-routes] cannot find controller. options is ${options}`,
         )
       }
       const handle = _controller[methodName]
       return handle.bind(_controller)
     }
+
     server.decorate('handler', 'controller', handler)
+
     if(bindRoutes){
-      Object.freeze(context)
-      server.bind(context)
+      server.bind({
+        context,
+        modules: Mongoose.models,
+      })
     }
     server.route(routes)
   },

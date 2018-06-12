@@ -23,7 +23,8 @@
     "test": "yarn run test:unit",
     "test:unit:watch": "yarn run test:unit --watch",
     "test:unit": "mocha-webpack \"src/**/*.spec.js\" --webpack-config config/webpack.test.config.js --timeout 3000 --recursive --require build/chai.js",
-    "cover": "nyc --reporter=lcov --reporter=text yarn run test:unit"
+    "cover": "nyc --reporter=lcov --reporter=html --reporter=text yarn run test:unit",
+    "cover-ci": "nyc --reporter=lcov yarn run test:unit"
   },
   "nyc": {
     "include": [
@@ -137,6 +138,7 @@
     "mongoose": "^5.1.4",
     "mongoose-schema-to-graphql": "^2.7.2",
     "pm2": "^2.10.4",
+    "require-all": "^2.2.0",
     "vision": "^5.3.3"
   }
 }

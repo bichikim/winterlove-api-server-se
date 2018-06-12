@@ -1,27 +1,11 @@
 import {
-  Server,
   HandlerDecorations,
   Lifecycle,
   ServerRoute,
-  ServerRegisterPluginObject,
 } from 'hapi'
 import {Schema} from 'Joi'
 import {LowdbAsync} from 'lowdb'
-
-declare interface IStartOptions {
-  plugins?: ServerRegisterPluginObject<any>[]
-  mongoose?: string | boolean
-}
-
-declare interface IAPIServer {
-  readonly server: Server
-
-  register(plugin: any, options?: any): Promise<any>
-
-  start(options?: IStartOptions): Promise<Server>
-
-  stop(options?: {timeout: number}): void
-}
+import {Model} from 'mongoose'
 
 declare interface IServerRoute extends ServerRoute{
   config?: {
@@ -31,20 +15,29 @@ declare interface IServerRoute extends ServerRoute{
     response?: {}
     validate?: {
       payload?: {
-        [name: string]: Schema
+        [name: string]: Schema,
       }
       params?: {
-        [name: string]: Schema
+        [name: string]: Schema,
       },
       query?: {
-        [name: string]: Schema
+        [name: string]: Schema,
       }
-      headers?: Schema
+      headers?: Schema,
     }
-    handler: Lifecycle.Method | HandlerDecorations
+    handler: Lifecycle.Method | HandlerDecorations | {
+      controller: {
+        controller: string,
+        method: string,
+      } | string,
+    },
   }
 }
 
-interface IContext {
+declare interface IContext {
   lowDB(): LowdbAsync<any>
+}
+
+declare interface IModels {
+  Docs: Model<any>
 }

@@ -1,9 +1,9 @@
-import {IServerOptions} from './getArgv'
-import Http2, {Http2Server, Http2SecureServer} from 'http2'
-import {name} from './pkg'
 import fs from 'fs'
+import Http2, {Http2SecureServer, Http2Server} from 'http2'
+import {IArgvServerOptions} from './getArgv'
+import {name} from './pkg'
 
-export function getListener(options: IServerOptions = {}): Http2Server | Http2SecureServer {
+export function getListener(options: IArgvServerOptions = {}): Http2Server | Http2SecureServer {
   const {protocol = 'http', key, cert} = options
   if(protocol === 'https'){
     if(!key || !cert){

@@ -1,41 +1,108 @@
 import controllersRoutes from '@/plugins/controllers-routes/'
 import lowDB from '@/plugins/low-db'
+import mongooseGraphqlJoi, {
+  IGraphqlTypeConfig,
+  TResolverFactory,
+} from '@/plugins/mongoose-graphql-joi'
 import pm2ZeroDownTime from '@/plugins/pm2-zero-down-time'
-import routes from '@/routes'
-import {IAPIServer, IStartOptions} from '@/types'
-import mongoose from 'mongoose'
-import getArgv from '@/util/getArgv'
+import {IServerRoute} from '@/types'
+import getArgv, {IArgvServerOptions} from '@/util/getArgv'
 import getPluginPkg from '@/util/getPluginPkg'
 import {name, version} from '@/util/pkg'
-import {graphqlHapi, graphiqlHapi} from 'apollo-server-hapi'
+import {ServerRegisterPluginObject} from 'hapi'
 import Hapi, {Server} from 'hapi'
 import hapiSwagger from 'hapi-swagger'
 import inert from 'inert'
-import vision from 'vision'
+import {Schema as JoiSchema} from 'joi'
+import mongoose from 'mongoose'
 import {resolve} from 'path'
-if(!global.__src || !global.__root){
-  throw new Error('[ApiServer] global.__src or global.__root is already taken')
+import vision from 'vision'
+const className = 'ApiServer'
+if(global.__src || global.__root){
+  console.warn(`[${className}] global.__src or global.__root is already taken`)
 }
 global.__src = resolve(__dirname, './')
 global.__root = resolve(__dirname, '../')
 
-
 // const
 const ARGV_SKIP = 2
 
-class ApiServer implements IAPIServer {
-  public readonly server: Server
-  public readonly production: boolean
+export interface IServerOptions extends IArgvServerOptions{
+  jois?: {[name: string]: JoiSchema}
+  types?: IGraphqlTypeConfig[]
+  routes?: IServerRoute[]
+  resolvers?: TResolverFactory[]
+  controllers?: {[name: string]: any}
+  plugins?: Array<ServerRegisterPluginObject<any>>
+  mongooseUrl?: string
+}
 
-  constructor(options: any = {}) {
-    const serverOptions = Object.assign(getArgv(process.argv.slice(ARGV_SKIP)), options)
-    const {port, host} = serverOptions
+/**
+ * ApiServer constructor Options
+ */
+export interface IAPIServer {
+  // origin hapi server
+  readonly server: Server
+  readonly cert: string
+  readonly host: string
+  readonly jois: {[name: string]: JoiSchema}
+  readonly key: string
+  readonly mongooseUrl: string
+  readonly plugins: Array<ServerRegisterPluginObject<any>>
+  readonly port: number
+  readonly protocol: string
+  readonly resolvers: TResolverFactory[]
+  readonly types: IGraphqlTypeConfig[]
+  readonly routes: IServerRoute[]
+  readonly controllers: {[name: string]: any}
 
-    this.server = new Hapi.Server({
-      port, host,
-    })
+  register(plugin: any, options?: any): Promise<any>
 
-    this.production = !process.env.NODE_END || process.env.NODE_END === 'production'
+  start(options?: IServerOptions): Promise<Server>
+
+  stop(options?: {timeout: number}): void
+}
+
+/**
+ * Api server
+ */
+export default class ApiServer implements IAPIServer {
+  readonly production: boolean =
+    !process.env.NODE_END || process.env.NODE_END === 'production'
+
+  readonly cert: string
+  readonly controllers: {[name: string]: any}
+  readonly host: string
+  readonly jois: {[name: string]: JoiSchema}
+  readonly key: string
+  readonly mongooseUrl: string
+  readonly plugins: Array<ServerRegisterPluginObject<any>>
+  readonly port: number
+  readonly protocol: string
+  readonly resolvers: TResolverFactory[]
+  readonly routes: IServerRoute[]
+  readonly types: IGraphqlTypeConfig[]
+
+  private _server: Server
+  get server(): Server {return this._server}
+
+  constructor(options: IServerOptions = {}) {
+    const {jois, types, resolvers, mongooseUrl, plugins, controllers, routes,...others} = options
+    const serverOptions = Object.assign(others, getArgv(process.argv.slice(ARGV_SKIP)))
+    const {port, host, protocol, key, cert} = serverOptions
+
+    this.cert = cert
+    this.controllers = controllers
+    this.host = host
+    this.jois = jois
+    this.key = key
+    this.mongooseUrl = mongooseUrl
+    this.plugins = plugins
+    this.port = port
+    this.protocol = protocol
+    this.resolvers = resolvers
+    this.routes = routes
+    this.types = types
   }
 
   async register(plugin: any, options?: any) {
@@ -51,35 +118,33 @@ class ApiServer implements IAPIServer {
 
   /**
    * start server with options
-   * @param {IStartOptions} options
+   * @param {IServerOptions} options
    * @returns {Promise<Server>}
    */
-  async start(options: IStartOptions = {}) {
-    const {plugins = [], mongoose: _mongoose = 'mongodb://localhost:27017/db'} = options
-    if(_mongoose){
-      await mongoose.connect(String(_mongoose))
-    }
+  async start(options: IServerOptions = {}) {
+    const {
+      port, host, mongooseUrl, plugins, jois, types, resolvers, controllers, routes,
+    } = this._mergeOptions(options)
 
-    const registers = []
+    this._server = new Hapi.Server({port, host})
+
+    if(mongooseUrl){await mongoose.connect(String(mongooseUrl))}
 
     ///////////////////////////////
-    // register plugins in options
+    // register plugins in start options & server options
     //////////////////////////////
-    for(let plugin of plugins){
-      registers.push(this.register(plugin.plugin), plugin.options)
-    }
-
+    const registers = []
+    for(let plugin of plugins){registers.push(this.register(plugin.plugin), plugin.options)}
     await Promise.all(registers)
 
     ////////////////////////////
-    // register for dev mode
+    // register plugins for dev mode
     ///////////////////////////
     if(!this.production){
       // for hapi-Swagger
       await Promise.all([
         this.register(inert),
         this.register(vision),
-        this.register(graphiqlHapi),
       ])
     }
 
@@ -95,15 +160,26 @@ class ApiServer implements IAPIServer {
         documentationPage: !this.production,
         swaggerUI: !this.production,
       }),
-      this.register(graphqlHapi, {
-
-      }),
       // for pm2
       this.register(pm2ZeroDownTime),
     ])
 
+    if(jois && types && resolvers){
+      await this.register(mongooseGraphqlJoi, {
+        jois, types, resolvers,
+      })
+    }
+
+    ///////////////////////////
+    // register controllersRoutes
+    //////////////////////////
     const {db} = await this.register(lowDB)
-    await this.register(controllersRoutes, {routes, context: {lowDB: db}})
+    // controllers have mongoose.models
+    await this.register(controllersRoutes, {
+      routes,
+      controllers,
+      context: {lowDB: db},
+    })
 
     // this.server.route(routes)
 
@@ -122,6 +198,35 @@ class ApiServer implements IAPIServer {
     await this.server.stop(options)
   }
 
+  private _mergeOptions(options: IServerOptions) {
+    const {
+      cert = this.cert,
+      host = this.host,
+      jois,
+      key = this.key,
+      mongooseUrl = this.mongooseUrl,
+      plugins = [],
+      port = this.port,
+      protocol = this.protocol,
+      resolvers,
+      controllers,
+      routes = [],
+      types,
+    } = options
+    return {
+      cert,
+      controllers: this.controllers ?
+        Object.assign({}, this.controllers, controllers || {}) : controllers,
+      host,
+      jois: this.jois ? Object.assign({}, this.jois, jois || {}) : jois,
+      key,
+      mongooseUrl,
+      plugins: plugins.concat(this.plugins || []),
+      port,
+      protocol,
+      resolvers: this.resolvers ? [...this.resolvers].concat(resolvers || []) : resolvers,
+      routes: routes.concat(this.routes || []),
+      types: this.types ? [...this.types].concat(types || []) : types,
+    }
+  }
 }
-
-export default ApiServer

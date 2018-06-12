@@ -1,4 +1,3 @@
-import {name} from '@/util/file-name'
 import {graphiqlHapi, graphqlHapi} from 'apollo-server-hapi'
 import {IResolvers, makeExecutableSchema} from 'graphql-tools'
 import {Plugin, Server} from 'hapi'
@@ -6,38 +5,42 @@ import {Schema as JoiSchema} from 'joi'
 import Joigoose from 'joigoose'
 import {forEach, upperFirst} from 'lodash'
 import Mongoose, {Model, Schema} from 'mongoose'
-import createType, {ConfigurationObject} from 'mongoose-schema-to-graphql'
-import {join} from 'path'
+import createType, {
+  ExtendFieldType,
+  ObjectKeyStringValueAnyType,
+} from 'mongoose-schema-to-graphql'
 const joigoose = Joigoose(Mongoose)
-type TResolverFactory = (models: {[name: string]: Model<any>}) => IResolvers
+export type TResolverFactory = (models: {[name: string]: Model<any>}) => IResolvers
 interface IOptions {
-  location?: string
-  schemasPath?: string
-  types?: ConfigurationObject[]
+  jois: {[name: string]: JoiSchema}
+  types: IGraphqlTypeConfig[]
+  resolvers: TResolverFactory[]
   path?: string
-  resolvers?: TResolverFactory | TResolverFactory[]
   graphiqlHapi?: boolean
+}
+
+export interface IGraphqlTypeConfig {
+  name: string,
+  description?: string,
+  class: string,
+  schema: Mongoose.Schema | string,
+  exclude?: RegExp | string[],
+  extend?: ExtendFieldType,
+  fields?: ObjectKeyStringValueAnyType,
 }
 const pluginName = 'mongoose-graphql-joi'
 const plugin: Plugin<IOptions> = {
   name: pluginName,
   version: '0.0.1',
-  register: async (server: Server, options: IOptions = {}) => {
+  register: async (server: Server, options: IOptions) => {
     const {
-      schemasPath = './models',
-      types = [],
-      location = 'mongodb://localhost:27017/db',
+      types, jois, resolvers,
       path = '/graphql',
       graphiqlHapi: isGraphiqlHapi = false,
-      resolvers,
     } = options
 
     // resolvers check
-    if(!resolvers){
-      throw new Error(`[${pluginName}] options should have resolvers`)
-    }
     // defined objects
-    const jois: {[name: string]: JoiSchema} = collectJois(schemasPath)
     const schemas: {[name: string]: Schema} = collectMongooseSchema(jois)
     const models: {[name: string]: Model<any>} = collectMongooseModels(schemas)
     const _types: any[] = collectGraphqlTypes(schemas, types)
@@ -64,32 +67,10 @@ const plugin: Plugin<IOptions> = {
       await server.register(graphiqlHapi)
     }
 
-    // connect mongoose
-    try{
-      await Mongoose.connect(location)
-    }catch(error){
-      // won't throw error
-      server.log(['error', 'mongoose', 'connect'], 'connecting mongoDB is failure')
-    }
-
     const expose = {jois, schemas, models, types: _types}
     Object.freeze(expose)
     server.expose(expose)
   },
-}
-
-function collectJois(path: string): {[name: string]: JoiSchema} {
-  const jois: {[name: string]: JoiSchema} = {}
-  const joisContext = require.context(
-    join(global.__src, path), false, /^(?!.*\.spec\.(js|ts)$).*\.(js|ts)$/,
-  )
-  joisContext.keys().forEach((fileName: string) => {
-    const key: string =  name(fileName)
-    if('index' !== key){
-      jois[key] = joisContext(fileName)
-    }
-  })
-  return jois
 }
 
 function collectMongooseSchema(jois: {[name: string]: JoiSchema}): {[name: string]: Schema} {
@@ -115,7 +96,7 @@ function collectMongooseModels(schemas: {[name: string]: Schema}): {[name: strin
 
 function collectGraphqlTypes(
   schemas: {[name: string]: Schema},
-  types: ConfigurationObject[],
+  types: IGraphqlTypeConfig[],
 ): any[] {
   const _types: any[] = []
   forEach(types, (typeOptions: any) => {
@@ -131,17 +112,13 @@ function collectGraphqlTypes(
 }
 
 function executeResolverFactories(
-  resolvers: TResolverFactory | TResolverFactory[],
+  resolvers: TResolverFactory[],
   models: {[name: string]: Model<any>},
 ) {
   const _resolvers: IResolvers[] = []
-  if(Array.isArray(resolvers)){
-    resolvers.forEach((resolver) => {
-      _resolvers.push(resolver(models))
-    })
-  }else{
-    _resolvers.push(resolvers(models))
-  }
+  resolvers.forEach((resolver) => {
+    _resolvers.push(resolver(models))
+  })
   return _resolvers
 }
 
