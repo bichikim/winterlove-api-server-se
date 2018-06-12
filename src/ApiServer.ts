@@ -1,4 +1,4 @@
-import controllersRoutes from '@/plugins/controllers-routes/'
+import controllersRoutes, {IController} from '@/plugins/controllers-routes/'
 import lowDB from '@/plugins/low-db'
 import mongooseGraphqlJoi, {
   IGraphqlTypeConfig,
@@ -31,6 +31,7 @@ export interface IServerOptions extends IArgvServerOptions{
   jois?: {[name: string]: JoiSchema}
   types?: IGraphqlTypeConfig[]
   resolvers?: TResolverFactory[]
+  controllers?: {[name: string]: IController<any>}
   plugins?: Array<ServerRegisterPluginObject<any>>
   mongooseUrl?: string
 }
@@ -39,8 +40,19 @@ export interface IServerOptions extends IArgvServerOptions{
  * ApiServer constructor Options
  */
 export interface IAPIServer {
+  // origin hapi server
   readonly server: Server
   readonly cert: string
+  readonly host: string
+  readonly jois: {[name: string]: JoiSchema}
+  readonly key: string
+  readonly mongooseUrl: string
+  readonly plugins: Array<ServerRegisterPluginObject<any>>
+  readonly port: number
+  readonly protocol: string
+  readonly resolvers: TResolverFactory[]
+  readonly types: IGraphqlTypeConfig[]
+  readonly controllers: {[name: string]: IController<any>}
 
   register(plugin: any, options?: any): Promise<any>
 
@@ -53,28 +65,31 @@ export interface IAPIServer {
  * Api server
  */
 export default class ApiServer implements IAPIServer {
-  public readonly production: boolean =
+  readonly production: boolean =
     !process.env.NODE_END || process.env.NODE_END === 'production'
 
-  public readonly cert: string
-  public readonly host: string
-  public readonly jois: {[name: string]: JoiSchema}
-  public readonly key: string
-  public readonly mongooseUrl: string
-  public readonly plugins: Array<ServerRegisterPluginObject<any>>
-  public readonly port: number
-  public readonly protocol: string
-  public readonly resolvers: TResolverFactory[]
-  public readonly types: IGraphqlTypeConfig[]
+  readonly cert: string
+  readonly controllers: {[name: string]: IController<any>}
+  readonly host: string
+  readonly jois: {[name: string]: JoiSchema}
+  readonly key: string
+  readonly mongooseUrl: string
+  readonly plugins: Array<ServerRegisterPluginObject<any>>
+  readonly port: number
+  readonly protocol: string
+  readonly resolvers: TResolverFactory[]
+  readonly types: IGraphqlTypeConfig[]
 
   private _server: Server
+  get server(): Server {return this._server}
 
   constructor(options: IServerOptions = {}) {
-    const {jois, types, resolvers, mongooseUrl, plugins, ...others} = options
+    const {jois, types, resolvers, mongooseUrl, plugins, controllers, ...others} = options
     const serverOptions = Object.assign(others, getArgv(process.argv.slice(ARGV_SKIP)))
     const {port, host, protocol, key, cert} = serverOptions
 
     this.cert = cert
+    this.controllers = controllers
     this.host = host
     this.jois = jois
     this.key = key
@@ -84,10 +99,6 @@ export default class ApiServer implements IAPIServer {
     this.protocol = protocol
     this.resolvers = resolvers
     this.types = types
-  }
-
-  get server(): Server {
-    return this._server
   }
 
   async register(plugin: any, options?: any) {
@@ -101,33 +112,6 @@ export default class ApiServer implements IAPIServer {
     return (this.server.plugins as any)[name]
   }
 
-  mergeOptions(options: IServerOptions) {
-    const {
-      cert = this.cert,
-      host = this.host,
-      jois,
-      key = this.key,
-      mongooseUrl = this.mongooseUrl,
-      plugins = [],
-      port = this.port,
-      protocol = this.protocol,
-      resolvers,
-      types,
-    } = options
-    return {
-      cert,
-      host,
-      jois: this.jois ? Object.assign({}, this.jois, jois || {}) : jois,
-      key,
-      mongooseUrl,
-      plugins: plugins.concat(this.plugins || []),
-      port,
-      protocol,
-      resolvers: this.resolvers ? [...this.resolvers].concat(resolvers || []) : resolvers,
-      types: this.types ? [...this.types].concat(types || []) : types,
-    }
-  }
-
   /**
    * start server with options
    * @param {IServerOptions} options
@@ -135,36 +119,22 @@ export default class ApiServer implements IAPIServer {
    */
   async start(options: IServerOptions = {}) {
     const {
-      port,
-      host,
-      mongooseUrl,
-      plugins,
-      jois,
-      types,
-      resolvers,
-    } = this.mergeOptions(options)
+      port, host, mongooseUrl, plugins, jois, types, resolvers, controllers,
+    } = this._mergeOptions(options)
 
-    this._server = new Hapi.Server({
-      port, host,
-    })
+    this._server = new Hapi.Server({port, host})
 
-    if(mongooseUrl){
-      await mongoose.connect(String(mongooseUrl))
-    }
-
-    const registers = []
+    if(mongooseUrl){await mongoose.connect(String(mongooseUrl))}
 
     ///////////////////////////////
-    // register plugins in options
+    // register plugins in start options & server options
     //////////////////////////////
-    for(let plugin of plugins){
-      registers.push(this.register(plugin.plugin), plugin.options)
-    }
-
+    const registers = []
+    for(let plugin of plugins){registers.push(this.register(plugin.plugin), plugin.options)}
     await Promise.all(registers)
 
     ////////////////////////////
-    // register for dev mode
+    // register plugins for dev mode
     ///////////////////////////
     if(!this.production){
       // for hapi-Swagger
@@ -192,14 +162,20 @@ export default class ApiServer implements IAPIServer {
 
     if(jois && types && resolvers){
       await this.register(mongooseGraphqlJoi, {
-        jois,
-        types,
-        resolvers,
+        jois, types, resolvers,
       })
     }
 
+    ///////////////////////////
+    // register controllersRoutes
+    //////////////////////////
     const {db} = await this.register(lowDB)
-    await this.register(controllersRoutes, {routes, context: {lowDB: db}})
+    // controllers have mongoose.models
+    await this.register(controllersRoutes, {
+      routes,
+      controllers,
+      context: {lowDB: db},
+    })
 
     // this.server.route(routes)
 
@@ -218,4 +194,33 @@ export default class ApiServer implements IAPIServer {
     await this.server.stop(options)
   }
 
+  private _mergeOptions(options: IServerOptions) {
+    const {
+      cert = this.cert,
+      host = this.host,
+      jois,
+      key = this.key,
+      mongooseUrl = this.mongooseUrl,
+      plugins = [],
+      port = this.port,
+      protocol = this.protocol,
+      resolvers,
+      controllers,
+      types,
+    } = options
+    return {
+      cert,
+      controllers: this.controllers ?
+        Object.assign({}, this.controllers, controllers || {}) : controllers,
+      host,
+      jois: this.jois ? Object.assign({}, this.jois, jois || {}) : jois,
+      key,
+      mongooseUrl,
+      plugins: plugins.concat(this.plugins || []),
+      port,
+      protocol,
+      resolvers: this.resolvers ? [...this.resolvers].concat(resolvers || []) : resolvers,
+      types: this.types ? [...this.types].concat(types || []) : types,
+    }
+  }
 }

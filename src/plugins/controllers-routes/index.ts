@@ -2,8 +2,9 @@ import {IContext} from '@/types'
 import {Plugin} from 'hapi'
 import capitalize from 'lodash/capitalize'
 import Mongoose from 'mongoose'
-import {IController} from './Controller'
+import Controller, {IController} from './Controller'
 import {IOptions} from './types'
+export {Controller, IController}
 
 const plugin: Plugin<IOptions<any>> = {
   name: 'controllersRoutes',
@@ -12,14 +13,13 @@ const plugin: Plugin<IOptions<any>> = {
     const {
       controllers = [],
       routes = [],
-      context: _context = {},
+      context = {},
       bindRoutes = true,
     } = options
+    Object.freeze(context)
     const controllerInstances: {[name: string]: IController<IContext>} = {}
-    const context = {..._context, modules: Mongoose.models}
-
     controllers.forEach((controller: any) => {
-      controllerInstances[controller.name] = new controller(server, context)
+      controllerInstances[controller.name] = new controller(server, Mongoose.models, context)
     })
 
     const handler = (route: any, options: any) => {
@@ -50,8 +50,10 @@ const plugin: Plugin<IOptions<any>> = {
     server.decorate('handler', 'controller', handler)
 
     if(bindRoutes){
-      Object.freeze(context)
-      server.bind(context)
+      server.bind({
+        context,
+        modules: Mongoose.models,
+      })
     }
     server.route(routes)
   },

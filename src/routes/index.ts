@@ -16,7 +16,7 @@ const routers: IServerRoute[]  = [
         }),
       },
       async handler() {
-        const db = await this.lowDB()
+        const db = await this.context.lowDB()
         return {
           data: db.get('info').value(),
         }
@@ -37,7 +37,7 @@ const routers: IServerRoute[]  = [
       },
       async handler(request: Request, h: ResponseToolkit) {
         const {data} = request.payload as any
-        const db = await this.lowDB()
+        const db = await this.context.lowDB()
         await db.set('info', data).write()
         return h.response()
       },
@@ -70,7 +70,7 @@ const routers: IServerRoute[]  = [
       async handler(request: Request) {
         // eslint-disable-next-line no-magic-numbers
         const {offset = 0, take = 5} = request.query as any
-        const db = await this.lowDB()
+        const db = await this.context.lowDB()
         return {
           data: db.get('docs').drop(offset).take(take).value(),
         }
@@ -96,7 +96,7 @@ const routers: IServerRoute[]  = [
         if(!title || !description){
           return {status: 'error'}
         }
-        const db = await this.lowDB()
+        const db = await this.context.lowDB()
         const time = Date.now()
         const doc = {
           time, id: time, title, description, ok,
@@ -127,7 +127,7 @@ const routers: IServerRoute[]  = [
       },
       async handler(request: Request, h: ResponseToolkit) {
         const {id, title, description, ok} = request.payload as any
-        const db = await this.lowDB()
+        const db = await this.context.lowDB()
         const doc = await db.get('docs').find({id})
         if(doc){
           if(ok){
@@ -155,7 +155,7 @@ const routers: IServerRoute[]  = [
       },
       async handler(request: Request, h: ResponseToolkit) {
         const {id, ok} = request.payload as any
-        const db = await this.lowDB()
+        const db = await this.context.lowDB()
         const doc = await db.get('docs').find({id})
         if(doc){
           await doc.assign({ok}).write()
@@ -178,7 +178,7 @@ const routers: IServerRoute[]  = [
       },
       async handler(request: Request, h: ResponseToolkit) {
         const {id} = request.payload as any
-        const db = await this.lowDB()
+        const db = await this.context.lowDB()
         await db.get('docs').remove({id}).write()
         return h.response()
       },
