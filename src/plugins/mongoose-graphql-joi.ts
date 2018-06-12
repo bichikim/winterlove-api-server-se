@@ -15,7 +15,6 @@ interface IOptions {
   jois: {[name: string]: JoiSchema}
   types: IGraphqlTypeConfig[]
   resolvers: TResolverFactory[]
-  location?: string
   path?: string
   graphiqlHapi?: boolean
 }
@@ -36,7 +35,6 @@ const plugin: Plugin<IOptions> = {
   register: async (server: Server, options: IOptions) => {
     const {
       types, jois, resolvers,
-      location = 'mongodb://localhost:27017/db',
       path = '/graphql',
       graphiqlHapi: isGraphiqlHapi = false,
     } = options
@@ -67,14 +65,6 @@ const plugin: Plugin<IOptions> = {
 
     if(isGraphiqlHapi){
       await server.register(graphiqlHapi)
-    }
-
-    // connect mongoose
-    try{
-      await Mongoose.connect(location)
-    }catch(error){
-      // won't throw error
-      server.log(['error', 'mongoose', 'connect'], 'connecting mongoDB is failure')
     }
 
     const expose = {jois, schemas, models, types: _types}
