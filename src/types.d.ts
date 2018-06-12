@@ -29,7 +29,7 @@ declare interface IServerRoute extends ServerRoute{
       controller: {
         controller: string,
         method: string,
-      },
+      } | string,
     },
   }
 }

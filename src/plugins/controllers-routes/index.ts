@@ -1,5 +1,5 @@
 import {Plugin, Server} from 'hapi'
-import {forEach, capitalize, camelCase} from 'lodash'
+import {camelCase, capitalize, forEach} from 'lodash'
 import Mongoose from 'mongoose'
 import Controller, {IController} from './Controller'
 import {IOptions} from './types'
@@ -43,7 +43,6 @@ const plugin: Plugin<IOptions<any, any>> = {
         )
       }
       const handle = _controller[methodName]
-      console.log('hand', methodName)
       return handle.bind(_controller)
     }
 

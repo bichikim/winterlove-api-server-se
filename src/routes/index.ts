@@ -67,6 +67,7 @@ const routers: IServerRoute[]  = [
           })).required(),
         }),
       },
+      // handler can be this type
       handler: {
         controller: {
           controller: 'Docs',
@@ -89,21 +90,9 @@ const routers: IServerRoute[]  = [
           ok: Joi.boolean(),
         },
       },
-      async handler(request: Request) {
-        const {title, description, ok = false} = request.payload as any
-        if(!title || !description){
-          return {status: 'error'}
-        }
-        const db = await this.context.lowDB()
-        const time = Date.now()
-        const doc = {
-          time, id: time, title, description, ok,
-        }
-        await db.get('docs')
-          .push(doc)
-          .last()
-          .write()
-        return doc
+      // handler can be this type [method]@[controller]
+      handler: {
+        controller: 'save@Docs',
       },
     },
 
@@ -123,17 +112,8 @@ const routers: IServerRoute[]  = [
           ok: Joi.boolean(),
         },
       },
-      async handler(request: Request, h: ResponseToolkit) {
-        const {id, title, description, ok} = request.payload as any
-        const db = await this.context.lowDB()
-        const doc = await db.get('docs').find({id})
-        if(doc){
-          if(ok){
-            doc.assign({ok})
-          }
-          await doc.assign({title, description}).write()
-        }
-        return h.response()
+      handler: {
+        controller: 'modify@Docs',
       },
     },
 
@@ -151,14 +131,8 @@ const routers: IServerRoute[]  = [
           ok: Joi.boolean(),
         },
       },
-      async handler(request: Request, h: ResponseToolkit) {
-        const {id, ok} = request.payload as any
-        const db = await this.context.lowDB()
-        const doc = await db.get('docs').find({id})
-        if(doc){
-          await doc.assign({ok}).write()
-        }
-        return h.response()
+      handler: {
+        controller: 'change@Docs',
       },
     },
   },
@@ -174,11 +148,8 @@ const routers: IServerRoute[]  = [
           id: Joi.number().required(),
         },
       },
-      async handler(request: Request, h: ResponseToolkit) {
-        const {id} = request.payload as any
-        const db = await this.context.lowDB()
-        await db.get('docs').remove({id}).write()
-        return h.response()
+      handler: {
+        controller: 'delete@Docs',
       },
     },
   },
