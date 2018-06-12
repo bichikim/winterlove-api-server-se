@@ -27,10 +27,7 @@ global.__root = resolve(__dirname, '../')
 // const
 const ARGV_SKIP = 2
 
-export interface IServerOptions extends IStartOptions, IArgvServerOptions{
-}
-
-export interface IStartOptions {
+export interface IServerOptions extends IArgvServerOptions{
   jois?: {[name: string]: JoiSchema}
   types?: IGraphqlTypeConfig[]
   resolvers?: TResolverFactory[]
@@ -38,41 +35,59 @@ export interface IStartOptions {
   mongooseUrl?: string
 }
 
+/**
+ * ApiServer constructor Options
+ */
 export interface IAPIServer {
   readonly server: Server
+  readonly cert: string
 
   register(plugin: any, options?: any): Promise<any>
 
-  start(options?: IStartOptions): Promise<Server>
+  start(options?: IServerOptions): Promise<Server>
 
   stop(options?: {timeout: number}): void
 }
 
+/**
+ * Api server
+ */
 export default class ApiServer implements IAPIServer {
-  public readonly server: Server
-  public readonly production: boolean
+  public readonly production: boolean =
+    !process.env.NODE_END || process.env.NODE_END === 'production'
+
+  public readonly cert: string
+  public readonly host: string
   public readonly jois: {[name: string]: JoiSchema}
-  public readonly types: IGraphqlTypeConfig[]
-  public readonly resolvers: TResolverFactory[]
+  public readonly key: string
   public readonly mongooseUrl: string
   public readonly plugins: Array<ServerRegisterPluginObject<any>>
+  public readonly port: number
+  public readonly protocol: string
+  public readonly resolvers: TResolverFactory[]
+  public readonly types: IGraphqlTypeConfig[]
+
+  private _server: Server
 
   constructor(options: IServerOptions = {}) {
     const {jois, types, resolvers, mongooseUrl, plugins, ...others} = options
-    const serverOptions = Object.assign(getArgv(process.argv.slice(ARGV_SKIP)), others)
-    const {port, host} = serverOptions
+    const serverOptions = Object.assign(others, getArgv(process.argv.slice(ARGV_SKIP)))
+    const {port, host, protocol, key, cert} = serverOptions
 
-    this.server = new Hapi.Server({
-      port, host,
-    })
-
-    this.production = !process.env.NODE_END || process.env.NODE_END === 'production'
-
+    this.cert = cert
+    this.host = host
     this.jois = jois
-    this.types = types
-    this.resolvers = resolvers
-    this.plugins = plugins
+    this.key = key
     this.mongooseUrl = mongooseUrl
+    this.plugins = plugins
+    this.port = port
+    this.protocol = protocol
+    this.resolvers = resolvers
+    this.types = types
+  }
+
+  get server(): Server {
+    return this._server
   }
 
   async register(plugin: any, options?: any) {
@@ -86,20 +101,53 @@ export default class ApiServer implements IAPIServer {
     return (this.server.plugins as any)[name]
   }
 
+  mergeOptions(options: IServerOptions) {
+    const {
+      cert = this.cert,
+      host = this.host,
+      jois,
+      key = this.key,
+      mongooseUrl = this.mongooseUrl,
+      plugins = [],
+      port = this.port,
+      protocol = this.protocol,
+      resolvers,
+      types,
+    } = options
+    return {
+      cert,
+      host,
+      jois: this.jois ? Object.assign({}, this.jois, jois || {}) : jois,
+      key,
+      mongooseUrl,
+      plugins: plugins.concat(this.plugins || []),
+      port,
+      protocol,
+      resolvers: this.resolvers ? [...this.resolvers].concat(resolvers || []) : resolvers,
+      types: this.types ? [...this.types].concat(types || []) : types,
+    }
+  }
+
   /**
    * start server with options
-   * @param {IStartOptions} options
+   * @param {IServerOptions} options
    * @returns {Promise<Server>}
    */
-  async start(options: IStartOptions = {}) {
+  async start(options: IServerOptions = {}) {
     const {
-      mongooseUrl = this.mongooseUrl,
-      plugins: _plugins = [],
-      jois = this.jois,
-      types = this.types,
-      resolvers = this.resolvers,
-    } = options
-    const plugins = _plugins.concat(this.plugins || [])
+      port,
+      host,
+      mongooseUrl,
+      plugins,
+      jois,
+      types,
+      resolvers,
+    } = this.mergeOptions(options)
+
+    this._server = new Hapi.Server({
+      port, host,
+    })
+
     if(mongooseUrl){
       await mongoose.connect(String(mongooseUrl))
     }
