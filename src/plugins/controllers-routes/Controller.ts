@@ -1,22 +1,20 @@
 import {Server} from 'hapi'
-import {Model} from 'mongoose'
 
-export interface IController<T> {
+export interface IController<C, M> {
   readonly server: Server
-  readonly context: T
-  readonly models: Array<Model<any>>
-  [name: string]: any
+  readonly context: C
+  readonly models: M
 }
 
-export default class Controller<T> implements IController<T> {
+export default class Controller<C, M> implements IController<C, M> {
   public readonly server: Server
-  public readonly context: T
-  public readonly models: Array<Model<any>>
+  public readonly context: C
+  public readonly models: M
 
   constructor(
     server: Server,
-    models: Array<Model<any>>,
-    context: T,
+    models: M,
+    context: C,
   ) {
     this.server = server
     this.context = context

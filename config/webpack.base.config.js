@@ -22,7 +22,7 @@ module.exports = {
       '~': resolve('lib'),
       '@@': resolve('./'),
       '~~': resolve('./'),
-      'handlebars': 'handlebars/dist/handlebars.js',
+      'Controller': resolve('src', 'Controller.ts'),
     },
   },
   module: {

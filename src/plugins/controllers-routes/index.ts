@@ -1,25 +1,24 @@
-import {IContext} from '@/types'
-import {Plugin} from 'hapi'
-import capitalize from 'lodash/capitalize'
+import {Plugin, Server} from 'hapi'
+import {forEach, capitalize, camelCase} from 'lodash'
 import Mongoose from 'mongoose'
 import Controller, {IController} from './Controller'
 import {IOptions} from './types'
 export {Controller, IController}
 
-const plugin: Plugin<IOptions<any>> = {
+const plugin: Plugin<IOptions<any, any>> = {
   name: 'controllersRoutes',
   version: '0.0.1',
-  register(server, options: IOptions<IContext> = {}) {
+  register(server: Server, options: IOptions<any, any> = {}) {
     const {
-      controllers = [],
+      controllers = {},
       routes = [],
       context = {},
       bindRoutes = true,
     } = options
     Object.freeze(context)
-    const controllerInstances: {[name: string]: IController<IContext>} = {}
-    controllers.forEach((controller: any) => {
-      controllerInstances[controller.name] = new controller(server, Mongoose.models, context)
+    const controllerInstances: any = {}
+    forEach(controllers, (controller: any, key: string) => {
+      controllerInstances[key] = new controller(server, Mongoose.models, context)
     })
 
     const handler = (route: any, options: any) => {
@@ -36,7 +35,7 @@ const plugin: Plugin<IOptions<any>> = {
         methodName = method
       }
       controllerName = capitalize(controllerName)
-      methodName = capitalize(methodName)
+      methodName = camelCase(methodName)
       const _controller = controllerInstances[controllerName]
       if(!_controller){
         throw new Error(
@@ -44,6 +43,7 @@ const plugin: Plugin<IOptions<any>> = {
         )
       }
       const handle = _controller[methodName]
+      console.log('hand', methodName)
       return handle.bind(_controller)
     }
 

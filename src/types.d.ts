@@ -5,6 +5,7 @@ import {
 } from 'hapi'
 import {Schema} from 'Joi'
 import {LowdbAsync} from 'lowdb'
+import {Model} from 'mongoose'
 
 declare interface IServerRoute extends ServerRoute{
   config?: {
@@ -24,10 +25,19 @@ declare interface IServerRoute extends ServerRoute{
       }
       headers?: Schema,
     }
-    handler: Lifecycle.Method | HandlerDecorations,
+    handler: Lifecycle.Method | HandlerDecorations | {
+      controller: {
+        controller: string,
+        method: string,
+      },
+    },
   }
 }
 
-interface IContext {
+declare interface IContext {
   lowDB(): LowdbAsync<any>
+}
+
+declare interface IModels {
+  Docs: Model<any>
 }

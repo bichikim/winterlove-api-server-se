@@ -1,4 +1,4 @@
-import Auth from './Auth'
+import Docs from './Docs'
 export default {
-  Auth,
+  Docs,
 }

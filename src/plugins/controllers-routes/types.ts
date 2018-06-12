@@ -1,9 +1,9 @@
 import {ServerRoute} from 'hapi'
-import {IController} from './Controller'
+import {Controller} from './'
 
-export interface IOptions<T> {
-  controllers?: Array<IController<T>>
+export interface IOptions<C, M> {
+  controllers?: {[name: string]: typeof Controller}
   routes?: ServerRoute[]
-  context?: T
+  context?: C
   bindRoutes?: boolean
 }

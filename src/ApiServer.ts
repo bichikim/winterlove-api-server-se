@@ -1,16 +1,16 @@
-import controllersRoutes, {IController} from '@/plugins/controllers-routes/'
+import controllersRoutes from '@/plugins/controllers-routes/'
 import lowDB from '@/plugins/low-db'
 import mongooseGraphqlJoi, {
   IGraphqlTypeConfig,
   TResolverFactory,
 } from '@/plugins/mongoose-graphql-joi'
 import pm2ZeroDownTime from '@/plugins/pm2-zero-down-time'
-import routes from '@/routes'
+import {IServerRoute} from '@/types'
 import getArgv, {IArgvServerOptions} from '@/util/getArgv'
 import getPluginPkg from '@/util/getPluginPkg'
 import {name, version} from '@/util/pkg'
-import Hapi, {Server} from 'hapi'
 import {ServerRegisterPluginObject} from 'hapi'
+import Hapi, {Server} from 'hapi'
 import hapiSwagger from 'hapi-swagger'
 import inert from 'inert'
 import {Schema as JoiSchema} from 'joi'
@@ -30,8 +30,9 @@ const ARGV_SKIP = 2
 export interface IServerOptions extends IArgvServerOptions{
   jois?: {[name: string]: JoiSchema}
   types?: IGraphqlTypeConfig[]
+  routes?: IServerRoute[]
   resolvers?: TResolverFactory[]
-  controllers?: {[name: string]: IController<any>}
+  controllers?: {[name: string]: any}
   plugins?: Array<ServerRegisterPluginObject<any>>
   mongooseUrl?: string
 }
@@ -52,7 +53,8 @@ export interface IAPIServer {
   readonly protocol: string
   readonly resolvers: TResolverFactory[]
   readonly types: IGraphqlTypeConfig[]
-  readonly controllers: {[name: string]: IController<any>}
+  readonly routes: IServerRoute[]
+  readonly controllers: {[name: string]: any}
 
   register(plugin: any, options?: any): Promise<any>
 
@@ -69,7 +71,7 @@ export default class ApiServer implements IAPIServer {
     !process.env.NODE_END || process.env.NODE_END === 'production'
 
   readonly cert: string
-  readonly controllers: {[name: string]: IController<any>}
+  readonly controllers: {[name: string]: any}
   readonly host: string
   readonly jois: {[name: string]: JoiSchema}
   readonly key: string
@@ -78,13 +80,14 @@ export default class ApiServer implements IAPIServer {
   readonly port: number
   readonly protocol: string
   readonly resolvers: TResolverFactory[]
+  readonly routes: IServerRoute[]
   readonly types: IGraphqlTypeConfig[]
 
   private _server: Server
   get server(): Server {return this._server}
 
   constructor(options: IServerOptions = {}) {
-    const {jois, types, resolvers, mongooseUrl, plugins, controllers, ...others} = options
+    const {jois, types, resolvers, mongooseUrl, plugins, controllers, routes,...others} = options
     const serverOptions = Object.assign(others, getArgv(process.argv.slice(ARGV_SKIP)))
     const {port, host, protocol, key, cert} = serverOptions
 
@@ -98,6 +101,7 @@ export default class ApiServer implements IAPIServer {
     this.port = port
     this.protocol = protocol
     this.resolvers = resolvers
+    this.routes = routes
     this.types = types
   }
 
@@ -119,7 +123,7 @@ export default class ApiServer implements IAPIServer {
    */
   async start(options: IServerOptions = {}) {
     const {
-      port, host, mongooseUrl, plugins, jois, types, resolvers, controllers,
+      port, host, mongooseUrl, plugins, jois, types, resolvers, controllers, routes,
     } = this._mergeOptions(options)
 
     this._server = new Hapi.Server({port, host})
@@ -206,6 +210,7 @@ export default class ApiServer implements IAPIServer {
       protocol = this.protocol,
       resolvers,
       controllers,
+      routes = [],
       types,
     } = options
     return {
@@ -220,6 +225,7 @@ export default class ApiServer implements IAPIServer {
       port,
       protocol,
       resolvers: this.resolvers ? [...this.resolvers].concat(resolvers || []) : resolvers,
+      routes: routes.concat(this.routes || []),
       types: this.types ? [...this.types].concat(types || []) : types,
     }
   }

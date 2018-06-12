@@ -67,13 +67,11 @@ const routers: IServerRoute[]  = [
           })).required(),
         }),
       },
-      async handler(request: Request) {
-        // eslint-disable-next-line no-magic-numbers
-        const {offset = 0, take = 5} = request.query as any
-        const db = await this.context.lowDB()
-        return {
-          data: db.get('docs').drop(offset).take(take).value(),
-        }
+      handler: {
+        controller: {
+          controller: 'Docs',
+          method: 'get',
+        },
       },
     },
   },

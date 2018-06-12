@@ -1,14 +1,18 @@
 import ApiServer from '@/ApiServer'
-import DocsResolvers from '@/resolvers/docs'
+import controllers from '@/controllers'
+import resolvers from '@/graphql-resolvers'
+import types from '@/graphql-types'
+import routes from '@/routes'
 import Docs from '@/schemas/docs'
-import DocsType from '@/types/docs'
 import * as pkg from '@/util/pkg'
 import {Server} from 'hapi'
 
 const server = new ApiServer({
+  routes,
+  controllers,
   jois: {Docs},
-  resolvers: [DocsResolvers],
-  types: [DocsType],
+  resolvers,
+  types,
 })
 
 server.start().then((server: Server) => {
