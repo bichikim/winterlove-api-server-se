@@ -1,6 +1,9 @@
 import ApiServer from './ApiServer'
 describe('APIServer', () => {
-  const server = new ApiServer({port: 3000})
+  // process env has a high priority
+  process.env.port = '3000'
+  // port 8111 won't be used as option
+  const server = new ApiServer({port: 8111})
   describe('start & stop', () => {
     it('should start server', (done) => {
       expect(server.start).to.be.a('function')
