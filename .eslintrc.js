@@ -1,6 +1,6 @@
 /* eslint-disable max-len,no-magic-numbers */
 module.exports = {
-  'plugins': ['html', 'vue', 'typescript'],
+  'plugins': ['html', 'vue', 'typescript',],
   'env': {
     'commonjs': true,
     'browser': true,
