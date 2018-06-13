@@ -16,7 +16,10 @@ const server = new ApiServer({
 })
 
 server.start().then((server: Server) => {
-  if(process.env.NODE_ENV === 'production'){return}
+  if(process.env.NODE_ENV === 'production'){
+    console.log('Server is running in production mode')
+    return
+  }
   const {version, info: {protocol, address, port} = {} as any} = server
   console.log(
     `Server is running for ${protocol}://${address}:${port}\n` +

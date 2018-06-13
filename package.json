@@ -10,6 +10,7 @@
     "dev": "cross-env NODE_END=development npm-run-all -p build:dev start:dev",
     "start": "pm2 start config/ecosystem.config.js",
     "start:watch": "pm2 start config/ecosystem.config.js --watch",
+    "start:prod": "node dist/app.js",
     "start:dev": "nodemon dist/app.js",
     "stop": "pm2 stop config/ecosystem.config.js",
     "restart": "pm2 restart config/ecosystem.config.js",
