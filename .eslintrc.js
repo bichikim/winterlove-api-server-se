@@ -181,7 +181,15 @@ module.exports = {
      *************************************/
     // off
     'typescript/explicit-member-accessibility': 'off',
-    'typescript/member-delimiter-style': 'off',
+    'typescript/member-delimiter-style': ['error', {
+      delimiter: 'none',
+      overrides: {
+        typeLiteral: {
+          delimiter: "comma",
+          requireLast: true,
+        }
+      }
+    }],
     'typescript/member-ordering': 'off',
     'typescript/no-empty-interface': 'off',
     'typescript/no-explicit-any': 'off',
