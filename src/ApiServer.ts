@@ -72,7 +72,6 @@ export default class ApiServer implements IAPIServer {
   readonly jois: {[name: string]: JoiSchema}
   readonly key: string
   readonly mongooseUrl: string
-  readonly plugins: Array<ServerRegisterPluginObject<any>>
   readonly port: number
   readonly protocol: string
   readonly resolvers: TResolverFactory[]
@@ -80,7 +79,9 @@ export default class ApiServer implements IAPIServer {
   readonly types: IGraphqlTypeConfig[]
 
   private _logBeforeServerCreate: Array<{tag: string[], massage: string}>
-  private _registerBeforeServerStart: Array<{plugin: Plugin<any>, options: any}>
+
+  private _plugins: Array<ServerRegisterPluginObject<any>>
+  get plugins(): Array<ServerRegisterPluginObject<any>> {return this._plugins}
 
   private _server: Server
   get server(): Server {return this._server}
@@ -96,7 +97,7 @@ export default class ApiServer implements IAPIServer {
     this.jois = jois
     this.key = key
     this.mongooseUrl = mongooseUrl
-    this.plugins = plugins
+    this._plugins = plugins
     this.port = port
     this.protocol = protocol
     this.resolvers = resolvers
@@ -113,10 +114,10 @@ export default class ApiServer implements IAPIServer {
         'the registering will do after server starting',
       )
     }
-    if(!this._registerBeforeServerStart){
-      this._registerBeforeServerStart = []
+    if(!this.plugins){
+      this._plugins = []
     }
-    this._registerBeforeServerStart.push({plugin, options})
+    this.plugins.push({plugin, options})
     return this
   }
 
@@ -151,7 +152,7 @@ export default class ApiServer implements IAPIServer {
     this._server = new Hapi.Server({port, host, tls})
 
     // run works
-    await this._afterCreateServer()
+    this._afterCreateServer()
 
     // no mongoose url no using mongoose
     if(mongooseUrl){
@@ -220,13 +221,20 @@ export default class ApiServer implements IAPIServer {
       throw error
     }
 
-    this.log(['success', 'hapi', 'start'], 'server start')
+    this.log(['info', 'hapi', 'start'], 'server start')
     return this.server
   }
 
   // stop server
   async stop(options?: {timeout: number}) {
-    await this.server.stop(options)
+    try{
+      await this.server.stop(options)
+    }catch(error){
+      this.log(['error', 'hapi', 'stop'], 'cannot stop hapi')
+      throw error
+    }
+    this.log(['info', 'hapi', 'stop'], 'server stop')
+    this._server = null
   }
 
   // solve getting tsl
@@ -268,14 +276,10 @@ export default class ApiServer implements IAPIServer {
   }
 
   // life cycle for afterCreateServer
-  private async _afterCreateServer() {
+  private _afterCreateServer() {
     // save logs that is made before server creating
     this._logAll(this._logBeforeServerCreate)
     this._logBeforeServerCreate = null
-
-    // register plugins that id registered before server creating
-    await this._registerAll(this._registerBeforeServerStart)
-    this._registerBeforeServerStart = null
   }
 
   // merge options with this options
