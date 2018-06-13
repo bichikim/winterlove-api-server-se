@@ -58,9 +58,7 @@ export interface IAPIServer {
   readonly controllers: {[name: string]: any}
 
   register(plugin: Plugin<any>, options?: any): IAPIServer
-
   start(options?: IServerOptions): Promise<Server>
-
   stop(options?: {timeout: number}): void
 }
 
@@ -205,7 +203,7 @@ export default class ApiServer implements IAPIServer {
     try{
       await this.server.start()
     }catch(error){
-      this.server.log(['error', 'hapi', 'start'], 'server cannot run')
+      this._log(['error', 'hapi', 'start'], 'server cannot run')
       throw error
     }
 
@@ -217,22 +215,65 @@ export default class ApiServer implements IAPIServer {
     await this.server.stop(options)
   }
 
-  // register all plugins
-  private async _registerAll(plugins: Array<{plugin: Plugin<any>, options?: any}>) {
-    await Promise.all(plugins.map((plugin) => {
-      return this._register(plugin.plugin, plugin.options)
-    }))
+  // solve getting tsl
+  private async _getTsl(options: {key: string, cert: string}): Promise<{key: any, cert: any}> {
+    const {key: _key, cert: _cert} = options
+    if(!_key || !_cert){
+      return
+    }
+
+    let key, cert
+    try{
+      key = await readFile(_key)
+    }catch(error){
+      this._log(
+        ['error', 'server', 'read file', 'key'], `cannot find key at ${_key}`)
+      console.error(error)
+      return
+    }
+    try{
+      cert = await readFile(_cert)
+    }catch(error){
+      this._log(
+        ['error', 'server', 'read file', 'cert'], `cannot find cert at ${_cert}`)
+      console.error(error)
+      return
+    }
+
+    return {
+      key, cert,
+    }
   }
 
-  // register one plugins it will return exposed value & log when registration has an error
-  private async _register(plugin: Plugin<any>, options?: any) {
-    const {name = 'unknown'} = getPluginPkg(plugin)
-    try{
-      await this.server.register({plugin, options})
-    }catch(error){
-      this.server.log(['error', name, 'register'], 'server cannot resister')
+  // server log
+  private _log(tag: string[], massage: string) {
+    if(this.server){
+      this.server.log(tag, massage)
+      return
     }
-    return (this.server.plugins as any)[name]
+    if(!this._logBeforeServerCreate){
+      this._logBeforeServerCreate = []
+    }
+    this._logBeforeServerCreate.push({tag, massage})
+  }
+
+  // server log all logs
+  private _logAll(logs?: Array<{tag: string[], massage: string}>) {
+    if(!logs){return}
+    logs.forEach((log: {tag: string[], massage: string}) => {
+      this.server.log(log.tag, log.massage)
+    })
+  }
+
+  // life cycle for afterCreateServer
+  private async _afterCreateServer() {
+    // save logs that is made before server creating
+    this._logAll(this._logBeforeServerCreate)
+    this._logBeforeServerCreate = null
+
+    // register plugins that id registered before server creating
+    await this._registerAll(this._registerBeforeServerStart)
+    this._registerBeforeServerStart = null
   }
 
   // merge options with this options
@@ -268,59 +309,22 @@ export default class ApiServer implements IAPIServer {
     }
   }
 
-  // life cycle for afterCreateServer
-  private async _afterCreateServer() {
-    // save logs that is made before server creating
-    if(!this._logBeforeServerCreate){return}
-    this._logBeforeServerCreate.forEach((log) => {
-      this.server.log(log.tag, log.massage)
-    })
-    this._logBeforeServerCreate = null
-
-    // register plugins that id registered before server creating
-    if(!this._registerBeforeServerStart){return}
-    await this._registerAll(this._registerBeforeServerStart)
+  // register all plugins
+  private async _registerAll(plugins?: Array<{plugin: Plugin<any>, options?: any}>) {
+    if(!plugins){return}
+    await Promise.all(plugins.map((plugin) => {
+      return this._register(plugin.plugin, plugin.options)
+    }))
   }
 
-  // server log
-  private _log(tag: string[], massage: string) {
-    if(this.server){
-      this.server.log(tag, massage)
-      return
-    }
-    if(!this._logBeforeServerCreate){
-      this._logBeforeServerCreate = []
-    }
-    this._logBeforeServerCreate.push({tag, massage})
-  }
-
-  // solve getting tsl
-  private async _getTsl(options: {key: string, cert: string}): Promise<{key: any, cert: any}> {
-    const {key: _key, cert: _cert} = options
-    if(!_key || !_cert){
-      return
-    }
-
-    let key, cert
+  // register one plugins it will return exposed value & log when registration has an error
+  private async _register(plugin: Plugin<any>, options?: any) {
+    const {name = 'unknown'} = getPluginPkg(plugin)
     try{
-      key = await readFile(_key)
+      await this.server.register({plugin, options})
     }catch(error){
-      this._log(
-        ['error', 'server', 'read file', 'key'], `cannot find key at ${_key}`)
-      console.error(error)
-      return
+      this._log(['error', name, 'register'],'server cannot resister')
     }
-    try{
-      cert = await readFile(_cert)
-    }catch(error){
-      this._log(
-        ['error', 'server', 'read file', 'cert'], `cannot find cert at ${_cert}`)
-      console.error(error)
-      return
-    }
-
-    return {
-      key, cert,
-    }
+    return (this.server.plugins as any)[name]
   }
 }
