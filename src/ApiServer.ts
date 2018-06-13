@@ -28,6 +28,9 @@ if(global.__src || global.__root){
 global.__src = resolve(__dirname, './')
 global.__root = resolve(__dirname, '../')
 
+/**
+ * ApiServer constructor & start Options
+ */
 export interface IServerOptions extends IArgvServerOptions{
   jois?: {[name: string]: JoiSchema}
   types?: IGraphqlTypeConfig[]
@@ -39,7 +42,7 @@ export interface IServerOptions extends IArgvServerOptions{
 }
 
 /**
- * ApiServer constructor Options
+ * ApiServer interface
  */
 export interface IAPIServer {
   // origin hapi server
