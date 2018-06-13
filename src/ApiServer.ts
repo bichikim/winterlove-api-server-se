@@ -84,6 +84,8 @@ export default class ApiServer implements IAPIServer {
   readonly routes: IServerRoute[]
   readonly types: IGraphqlTypeConfig[]
 
+  private _logBeforeServerCreate: Array<{tag: string[], massage: string}>
+
   private _server: Server
   get server(): Server {return this._server}
 
@@ -131,6 +133,9 @@ export default class ApiServer implements IAPIServer {
     const tls = await this._getTsl({key, cert})
 
     this._server = new Hapi.Server({port, host, tls})
+
+    // run works
+    this._afterCreateServer()
 
     if(mongooseUrl){await mongoose.connect(String(mongooseUrl))}
 
@@ -234,9 +239,26 @@ export default class ApiServer implements IAPIServer {
     }
   }
 
+  private _afterCreateServer() {
+    if(!this._logBeforeServerCreate){return}
+    this._logBeforeServerCreate.forEach((log) => {
+      this.server.log(log.tag, log.massage)
+    })
+    this._logBeforeServerCreate = null
+  }
+
+  private _log(tag: string[], massage: string) {
+    if(this.server){
+      this.server.log(tag, massage)
+      return
+    }
+    this._logBeforeServerCreate.push({tag, massage})
+  }
+
+  // eslint-disable-next-line class-methods-use-this
   private async _getTsl(options: {key: string, cert: string}): Promise<{key: any, cert: any}> {
     const {key: _key, cert: _cert} = options
-    if(_key && _cert){
+    if(!_key || !_cert){
       return
     }
 
@@ -244,14 +266,15 @@ export default class ApiServer implements IAPIServer {
     try{
       key = await readFile(_key)
     }catch(error){
-      this.server.log(['error', 'server', 'read file', 'key'], `cannot find key at ${_key}`)
+      this._log(
+        ['error', 'server', 'read file', 'key'], `cannot find key at ${_key}`)
       console.error(error)
       return
     }
     try{
       cert = await readFile(_cert)
     }catch(error){
-      this.server.log(
+      this._log(
         ['error', 'server', 'read file', 'cert'], `cannot find cert at ${_cert}`)
       console.error(error)
       return
