@@ -16,7 +16,6 @@ import hapiSwagger from 'hapi-swagger'
 import inert from 'inert'
 import {Schema as JoiSchema} from 'joi'
 import mongoose from 'mongoose'
-import {resolve} from 'path'
 import vision from 'vision'
 // const
 const ARGV_SKIP = 2
