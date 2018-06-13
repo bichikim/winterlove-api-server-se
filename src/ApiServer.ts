@@ -133,33 +133,35 @@ export default class ApiServer implements IAPIServer {
       key, cert,
       port, host, mongooseUrl, plugins, jois, types, resolvers, controllers, routes,
     } = this._mergeOptions(options)
-
     const tls = await this._getTsl({key, cert})
+    const waitingPipe = []
 
     this._server = new Hapi.Server({port, host, tls})
 
     // run works
     await this._afterCreateServer()
 
-    if(mongooseUrl){await mongoose.connect(String(mongooseUrl))}
+    if(mongooseUrl){
+      waitingPipe.push(mongoose.connect(String(mongooseUrl)))
+    }
 
     ///////////////////////////////
     // register plugins in start options & server options
     //////////////////////////////
-    await this._registerAll(plugins)
+    waitingPipe.push(this._registerAll(plugins))
 
     ////////////////////////////
     // register plugins for dev mode
     ///////////////////////////
     if(!this.production){
       // for hapi-Swagger
-      await this._registerAll([{plugin: inert}, {plugin: vision}])
+      waitingPipe.push(this._registerAll([{plugin: inert}, {plugin: vision}]))
     }
 
     ///////////////////////////
     // register default plugins
     //////////////////////////
-    await this._registerAll([
+    waitingPipe.push(this._registerAll([
       {plugin: hapiSwagger, options: {
         info: {
           title: name(),
@@ -169,26 +171,29 @@ export default class ApiServer implements IAPIServer {
         swaggerUI: !this.production,
       }},
       {plugin: pm2ZeroDownTime},
-    ])
+    ]))
 
     if(jois && types && resolvers){
-      await this._register(mongooseGraphqlJoi, {
+      waitingPipe.push(this._register(mongooseGraphqlJoi, {
         jois, types, resolvers,
-      })
+      }))
     }
 
     ///////////////////////////
     // register controllersRoutes
     //////////////////////////
-    const {db} = await this._register(lowDB)
-    // controllers have mongoose.models
-    await this._register(controllersRoutes, {
-      routes,
-      controllers,
-      context: {lowDB: db},
-    })
+    waitingPipe.push((async () => {
+      const {db} = await this._register(lowDB)
+      // controllers have mongoose.models
+      await this._register(controllersRoutes, {
+        routes,
+        controllers,
+        context: {lowDB: db},
+      })
+    })())
 
-    // this.server.route(routes)
+    // wait all plugin registrations
+    await Promise.all(waitingPipe)
 
     // start server
     try{
