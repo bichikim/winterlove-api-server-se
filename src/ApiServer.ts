@@ -174,17 +174,19 @@ export default class ApiServer implements IAPIServer {
     ///////////////////////////
     // register default plugins
     //////////////////////////
-    waitingPipe.push(this._registerAll([
-      {plugin: hapiSwagger, options: {
-        info: {
-          title: name(),
-          version: version(),
-        },
-        documentationPage: !this.production,
-        swaggerUI: !this.production,
-      }},
-      {plugin: pm2ZeroDownTime},
-    ]))
+    waitingPipe.push(
+      this._registerAll([
+        {plugin: hapiSwagger, options: {
+          info: {
+            title: name(),
+            version: version(),
+          },
+          documentationPage: !this.production,
+          swaggerUI: !this.production,
+        }},
+        {plugin: pm2ZeroDownTime},
+      ]),
+    )
 
     if(jois && types && resolvers){
       waitingPipe.push(this._register(mongooseGraphqlJoi, {
@@ -195,15 +197,17 @@ export default class ApiServer implements IAPIServer {
     ///////////////////////////
     // register controllersRoutes
     //////////////////////////
-    waitingPipe.push((async () => {
-      const {db} = await this._register(lowDB)
-      // controllers have mongoose.models
-      await this._register(controllersRoutes, {
-        routes,
-        controllers,
-        context: {lowDB: db},
-      })
-    })())
+    waitingPipe.push(
+      (async () => {
+        const {db} = await this._register(lowDB)
+        // controllers have mongoose.models
+        await this._register(controllersRoutes, {
+          routes,
+          controllers,
+          context: {lowDB: db},
+        })
+      })(),
+    )
 
     // wait all plugin registrations
     await Promise.all(waitingPipe)
