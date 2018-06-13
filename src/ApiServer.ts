@@ -20,13 +20,7 @@ import {resolve} from 'path'
 import vision from 'vision'
 // const
 const ARGV_SKIP = 2
-const className = 'ApiServer'
-
-if(global.__src || global.__root){
-  console.warn(`[${className}] global.__src or global.__root is already taken`)
-}
-global.__src = resolve(__dirname, './')
-global.__root = resolve(__dirname, '../')
+const CLASS_NAME = 'ApiServer'
 
 /**
  * ApiServer constructor & start Options
@@ -113,7 +107,7 @@ export default class ApiServer implements IAPIServer {
   register(plugin: Plugin<any>, options?: any): IAPIServer {
     if(this.server && this.server.info.started){
       console.warn(
-        `[${className}] cannot resister a plugin because server is already started`,
+        `[${CLASS_NAME}] cannot resister a plugin because server is already started`,
       )
       return
     }
