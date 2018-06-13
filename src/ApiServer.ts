@@ -56,6 +56,7 @@ export interface IAPIServer {
   register(plugin: Plugin<any>, options?: any): IAPIServer
   start(options?: IServerOptions): Promise<Server>
   stop(options?: {timeout: number}): void
+  log(tag: string[], massage: string): void
 }
 
 /**
@@ -107,15 +108,28 @@ export default class ApiServer implements IAPIServer {
   register(plugin: Plugin<any>, options?: any): IAPIServer {
     if(this.server && this.server.info.started){
       console.warn(
-        `[${CLASS_NAME}] cannot resister a plugin because server is already started`,
+        `[${CLASS_NAME}] cannot register a plugin now` +
+        'because server is already started ' +
+        'the registering will do after server starting',
       )
-      return
     }
     if(!this._registerBeforeServerStart){
       this._registerBeforeServerStart = []
     }
     this._registerBeforeServerStart.push({plugin, options})
     return this
+  }
+
+  // server log
+  log(tag: string[], massage: string) {
+    if(this.server){
+      this.server.log(tag, massage)
+      return
+    }
+    if(!this._logBeforeServerCreate){
+      this._logBeforeServerCreate = []
+    }
+    this._logBeforeServerCreate.push({tag, massage})
   }
 
   // start server with options
@@ -198,7 +212,7 @@ export default class ApiServer implements IAPIServer {
     try{
       await this.server.start()
     }catch(error){
-      this._log(['error', 'hapi', 'start'], 'server cannot run')
+      this.log(['error', 'hapi', 'start'], 'server cannot run')
       throw error
     }
 
@@ -221,7 +235,7 @@ export default class ApiServer implements IAPIServer {
     try{
       key = await readFile(_key)
     }catch(error){
-      this._log(
+      this.log(
         ['error', 'server', 'read file', 'key'], `cannot find key at ${_key}`)
       console.error(error)
       return
@@ -229,7 +243,7 @@ export default class ApiServer implements IAPIServer {
     try{
       cert = await readFile(_cert)
     }catch(error){
-      this._log(
+      this.log(
         ['error', 'server', 'read file', 'cert'], `cannot find cert at ${_cert}`)
       console.error(error)
       return
@@ -238,18 +252,6 @@ export default class ApiServer implements IAPIServer {
     return {
       key, cert,
     }
-  }
-
-  // server log
-  private _log(tag: string[], massage: string) {
-    if(this.server){
-      this.server.log(tag, massage)
-      return
-    }
-    if(!this._logBeforeServerCreate){
-      this._logBeforeServerCreate = []
-    }
-    this._logBeforeServerCreate.push({tag, massage})
   }
 
   // server log all logs
@@ -318,7 +320,7 @@ export default class ApiServer implements IAPIServer {
     try{
       await this.server.register({plugin, options})
     }catch(error){
-      this._log(['error', name, 'register'],'server cannot resister')
+      this.log(['error', name, 'register'],'server cannot resister')
     }
     return (this.server.plugins as any)[name]
   }
