@@ -57,8 +57,6 @@ export interface IAPIServer {
   readonly routes: IServerRoute[]
   readonly controllers: {[name: string]: any}
 
-  register(plugin: any, options?: any): Promise<any>
-
   start(options?: IServerOptions): Promise<Server>
 
   stop(options?: {timeout: number}): void
@@ -108,17 +106,6 @@ export default class ApiServer implements IAPIServer {
     this.types = types
   }
 
-  async register(plugin: any, options?: any) {
-    const {name = 'unknown'} = getPluginPkg(plugin)
-    try{
-      await this.server.register({plugin, options})
-    }catch(error){
-
-      this.server.log(['error', name, 'register'], 'server cannot resister')
-    }
-    return (this.server.plugins as any)[name]
-  }
-
   /**
    * start server with options
    * @param {IServerOptions} options
@@ -143,7 +130,7 @@ export default class ApiServer implements IAPIServer {
     // register plugins in start options & server options
     //////////////////////////////
     const registers = []
-    for(let plugin of plugins){registers.push(this.register(plugin.plugin), plugin.options)}
+    for(let plugin of plugins){registers.push(this._register(plugin.plugin), plugin.options)}
     await Promise.all(registers)
 
     ////////////////////////////
@@ -152,8 +139,8 @@ export default class ApiServer implements IAPIServer {
     if(!this.production){
       // for hapi-Swagger
       await Promise.all([
-        this.register(inert),
-        this.register(vision),
+        this._register(inert),
+        this._register(vision),
       ])
     }
 
@@ -161,7 +148,7 @@ export default class ApiServer implements IAPIServer {
     // register default plugins
     //////////////////////////
     await Promise.all([
-      this.register(hapiSwagger, {
+      this._register(hapiSwagger, {
         info: {
           title: name(),
           version: version(),
@@ -170,11 +157,11 @@ export default class ApiServer implements IAPIServer {
         swaggerUI: !this.production,
       }),
       // for pm2
-      this.register(pm2ZeroDownTime),
+      this._register(pm2ZeroDownTime),
     ])
 
     if(jois && types && resolvers){
-      await this.register(mongooseGraphqlJoi, {
+      await this._register(mongooseGraphqlJoi, {
         jois, types, resolvers,
       })
     }
@@ -182,9 +169,9 @@ export default class ApiServer implements IAPIServer {
     ///////////////////////////
     // register controllersRoutes
     //////////////////////////
-    const {db} = await this.register(lowDB)
+    const {db} = await this._register(lowDB)
     // controllers have mongoose.models
-    await this.register(controllersRoutes, {
+    await this._register(controllersRoutes, {
       routes,
       controllers,
       context: {lowDB: db},
@@ -205,6 +192,17 @@ export default class ApiServer implements IAPIServer {
 
   async stop(options?: {timeout: number}) {
     await this.server.stop(options)
+  }
+
+  private async _register(plugin: any, options?: any) {
+    const {name = 'unknown'} = getPluginPkg(plugin)
+    try{
+      await this.server.register({plugin, options})
+    }catch(error){
+
+      this.server.log(['error', name, 'register'], 'server cannot resister')
+    }
+    return (this.server.plugins as any)[name]
   }
 
   private _mergeOptions(options: IServerOptions) {
