@@ -109,7 +109,7 @@ export default class ApiServer implements IAPIServer {
     this.types = types
   }
 
-  register(plugin: any, options?: any): IAPIServer {
+  register(plugin: Plugin<any>, options?: any): IAPIServer {
     if(this.server && this.server.info.started){
       console.warn(
         `[${className}] cannot resister a plugin because server is already started`,
@@ -125,15 +125,20 @@ export default class ApiServer implements IAPIServer {
 
   /**
    * start server with options
-   * @param {IServerOptions} options
-   * @returns {Promise<Server>}
    */
   async start(options: IServerOptions = {}) {
     const {
       key, cert,
       port, host, mongooseUrl, plugins, jois, types, resolvers, controllers, routes,
     } = this._mergeOptions(options)
+
+    // key & cert for https
     const tls = await this._getTsl({key, cert})
+
+    // waitingPipe is save all Promise calls.
+    // the Promise.all will take the waitingPipe for waiting all calls
+    // the reason of using the Promise.all a next await should wait a previous await with out it.
+    // but if we use the Promise.all it will run all Promise at ones
     const waitingPipe = []
 
     this._server = new Hapi.Server({port, host, tls})
@@ -141,6 +146,7 @@ export default class ApiServer implements IAPIServer {
     // run works
     await this._afterCreateServer()
 
+    // no mongoose url no using mongoose
     if(mongooseUrl){
       waitingPipe.push(mongoose.connect(String(mongooseUrl)))
     }
@@ -206,16 +212,19 @@ export default class ApiServer implements IAPIServer {
     return this.server
   }
 
+  // stop server
   async stop(options?: {timeout: number}) {
     await this.server.stop(options)
   }
 
+  // register all plugins
   private async _registerAll(plugins: Array<{plugin: Plugin<any>, options?: any}>) {
     await Promise.all(plugins.map((plugin) => {
       return this._register(plugin.plugin, plugin.options)
     }))
   }
 
+  // register one plugins it will return exposed value & log when registration has an error
   private async _register(plugin: Plugin<any>, options?: any) {
     const {name = 'unknown'} = getPluginPkg(plugin)
     try{
@@ -226,6 +235,7 @@ export default class ApiServer implements IAPIServer {
     return (this.server.plugins as any)[name]
   }
 
+  // merge options with this options
   private _mergeOptions(options: IServerOptions) {
     const {
       cert = this.cert,
@@ -258,6 +268,7 @@ export default class ApiServer implements IAPIServer {
     }
   }
 
+  // life cycle for afterCreateServer
   private async _afterCreateServer() {
     // save logs that is made before server creating
     if(!this._logBeforeServerCreate){return}
@@ -265,11 +276,13 @@ export default class ApiServer implements IAPIServer {
       this.server.log(log.tag, log.massage)
     })
     this._logBeforeServerCreate = null
+
     // register plugins that id registered before server creating
     if(!this._registerBeforeServerStart){return}
     await this._registerAll(this._registerBeforeServerStart)
   }
 
+  // server log
   private _log(tag: string[], massage: string) {
     if(this.server){
       this.server.log(tag, massage)
@@ -281,7 +294,7 @@ export default class ApiServer implements IAPIServer {
     this._logBeforeServerCreate.push({tag, massage})
   }
 
-  // eslint-disable-next-line class-methods-use-this
+  // solve getting tsl
   private async _getTsl(options: {key: string, cert: string}): Promise<{key: any, cert: any}> {
     const {key: _key, cert: _cert} = options
     if(!_key || !_cert){
