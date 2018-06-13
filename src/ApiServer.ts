@@ -10,7 +10,7 @@ import getArgv, {IArgvServerOptions} from '@/util/getArgv'
 import getPluginPkg from '@/util/getPluginPkg'
 import {name, version} from '@/util/pkg'
 import {readFile} from 'fs-extra'
-import Hapi, {Server} from 'hapi'
+import Hapi, {Plugin, Server} from 'hapi'
 import {ServerRegisterPluginObject} from 'hapi'
 import hapiSwagger from 'hapi-swagger'
 import inert from 'inert'
@@ -18,15 +18,15 @@ import {Schema as JoiSchema} from 'joi'
 import mongoose from 'mongoose'
 import {resolve} from 'path'
 import vision from 'vision'
+// const
+const ARGV_SKIP = 2
 const className = 'ApiServer'
+
 if(global.__src || global.__root){
   console.warn(`[${className}] global.__src or global.__root is already taken`)
 }
 global.__src = resolve(__dirname, './')
 global.__root = resolve(__dirname, '../')
-
-// const
-const ARGV_SKIP = 2
 
 export interface IServerOptions extends IArgvServerOptions{
   jois?: {[name: string]: JoiSchema}
@@ -57,6 +57,8 @@ export interface IAPIServer {
   readonly routes: IServerRoute[]
   readonly controllers: {[name: string]: any}
 
+  register(plugin: Plugin<any>, options?: any): IAPIServer
+
   start(options?: IServerOptions): Promise<Server>
 
   stop(options?: {timeout: number}): void
@@ -83,6 +85,7 @@ export default class ApiServer implements IAPIServer {
   readonly types: IGraphqlTypeConfig[]
 
   private _logBeforeServerCreate: Array<{tag: string[], massage: string}>
+  private _registerBeforeServerStart: Array<{plugin: Plugin<any>, options: any}>
 
   private _server: Server
   get server(): Server {return this._server}
@@ -106,6 +109,20 @@ export default class ApiServer implements IAPIServer {
     this.types = types
   }
 
+  register(plugin: any, options?: any): IAPIServer {
+    if(this.server && this.server.info.started){
+      console.warn(
+        `[${className}] cannot resister a plugin because server is already started`,
+      )
+      return
+    }
+    if(!this._registerBeforeServerStart){
+      this._registerBeforeServerStart = []
+    }
+    this._registerBeforeServerStart.push({plugin, options})
+    return this
+  }
+
   /**
    * start server with options
    * @param {IServerOptions} options
@@ -122,42 +139,36 @@ export default class ApiServer implements IAPIServer {
     this._server = new Hapi.Server({port, host, tls})
 
     // run works
-    this._afterCreateServer()
+    await this._afterCreateServer()
 
     if(mongooseUrl){await mongoose.connect(String(mongooseUrl))}
 
     ///////////////////////////////
     // register plugins in start options & server options
     //////////////////////////////
-    const registers = []
-    for(let plugin of plugins){registers.push(this._register(plugin.plugin), plugin.options)}
-    await Promise.all(registers)
+    await this._registerAll(plugins)
 
     ////////////////////////////
     // register plugins for dev mode
     ///////////////////////////
     if(!this.production){
       // for hapi-Swagger
-      await Promise.all([
-        this._register(inert),
-        this._register(vision),
-      ])
+      await this._registerAll([{plugin: inert}, {plugin: vision}])
     }
 
     ///////////////////////////
     // register default plugins
     //////////////////////////
-    await Promise.all([
-      this._register(hapiSwagger, {
+    await this._registerAll([
+      {plugin: hapiSwagger, options: {
         info: {
           title: name(),
           version: version(),
         },
         documentationPage: !this.production,
         swaggerUI: !this.production,
-      }),
-      // for pm2
-      this._register(pm2ZeroDownTime),
+      }},
+      {plugin: pm2ZeroDownTime},
     ])
 
     if(jois && types && resolvers){
@@ -194,12 +205,17 @@ export default class ApiServer implements IAPIServer {
     await this.server.stop(options)
   }
 
-  private async _register(plugin: any, options?: any) {
+  private async _registerAll(plugins: Array<{plugin: Plugin<any>, options?: any}>) {
+    await Promise.all(plugins.map((plugin) => {
+      return this._register(plugin.plugin, plugin.options)
+    }))
+  }
+
+  private async _register(plugin: Plugin<any>, options?: any) {
     const {name = 'unknown'} = getPluginPkg(plugin)
     try{
       await this.server.register({plugin, options})
     }catch(error){
-
       this.server.log(['error', name, 'register'], 'server cannot resister')
     }
     return (this.server.plugins as any)[name]
@@ -237,18 +253,25 @@ export default class ApiServer implements IAPIServer {
     }
   }
 
-  private _afterCreateServer() {
+  private async _afterCreateServer() {
+    // save logs that is made before server creating
     if(!this._logBeforeServerCreate){return}
     this._logBeforeServerCreate.forEach((log) => {
       this.server.log(log.tag, log.massage)
     })
     this._logBeforeServerCreate = null
+    // register plugins that id registered before server creating
+    if(!this._registerBeforeServerStart){return}
+    await this._registerAll(this._registerBeforeServerStart)
   }
 
   private _log(tag: string[], massage: string) {
     if(this.server){
       this.server.log(tag, massage)
       return
+    }
+    if(!this._logBeforeServerCreate){
+      this._logBeforeServerCreate = []
     }
     this._logBeforeServerCreate.push({tag, massage})
   }

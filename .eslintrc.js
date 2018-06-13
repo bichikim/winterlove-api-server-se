@@ -90,7 +90,7 @@ module.exports = {
     }],
     'max-depth': ['error', {'max': 4}],
     'max-len': ['error', 100],
-    'max-lines': 'error',
+    'max-lines': ['error', 1000],
     'max-nested-callbacks': ['error', {'max': 3}],
     'max-params': ['error', {'max': 6}],
     'max-statements-per-line': ['error', {'max': 2}],
