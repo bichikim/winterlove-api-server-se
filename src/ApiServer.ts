@@ -103,6 +103,7 @@ export default class ApiServer implements IAPIServer {
     this.types = types
   }
 
+  // register a plugin before start server
   register(plugin: Plugin<any>, options?: any): IAPIServer {
     if(this.server && this.server.info.started){
       console.warn(
