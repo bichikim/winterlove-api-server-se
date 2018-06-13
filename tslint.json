@@ -33,6 +33,7 @@
     "no-trailing-whitespace": true,
     "no-use-before-declare": true,
     "quotemark": [true, "single"],
+    "type-literal-delimiter": false,
     "radix": true,
     "only-arrow-functions": [true, "allow-named-functions"],
     "no-empty-interface": false,
@@ -44,7 +45,14 @@
     "array-type": [true, "array-simple"],
     "member-access": false,
     "one-variable-per-declaration": false,
-    "whitespace": true,
+    "whitespace": [true,
+      "check-decl",
+      "check-operator",
+      "check-separator",
+      "check-type",
+      "check-typecast",
+      "check-type-operator"
+    ],
     "no-shadowed-variable": false,
     "typedef-whitespace": [true,{
       "call-signature": "nospace",
@@ -63,7 +71,13 @@
     ],
      "max-classes-per-file": [false, 1],
     "object-literal-sort-keys": false,
-    "space-before-function-paren": [true, {"anonymous": "never", "named": "never", "asyncArrow": "always"}],
+    "space-before-function-paren": [true, {
+      "anonymous": "never",
+      "named": "never",
+      "asyncArrow": "always",
+      "constructor": "never",
+      "method": "never"
+    }],
     "brace-style": ["1tbs", {
       "allowSingleLine": "never"
     }],

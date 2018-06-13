@@ -24,7 +24,7 @@ const CLASS_NAME = 'ApiServer'
 /**
  * ApiServer constructor & start Options
  */
-export interface IServerOptions extends IArgvServerOptions{
+export interface IServerOptions extends IArgvServerOptions {
   controllers?: {[name: string]: any}
   jois?: {[name: string]: JoiSchema}
   mongooseUrl?: string
@@ -86,7 +86,7 @@ export default class ApiServer implements IAPIServer {
   get server(): Server {return this._server}
 
   constructor(options: IServerOptions = {}) {
-    const {jois, types, resolvers, mongooseUrl, plugins, controllers, routes,...others} = options
+    const {jois, types, resolvers, mongooseUrl, plugins, controllers, routes, ...others} = options
     const serverOptions = Object.assign(others, getArgv(process.argv.slice(ARGV_SKIP)))
     const {port, host, protocol, key, cert} = serverOptions
 
@@ -320,7 +320,7 @@ export default class ApiServer implements IAPIServer {
     try{
       await this.server.register({plugin, options})
     }catch(error){
-      this.log(['error', name, 'register'],'server cannot resister')
+      this.log(['error', name, 'register'], 'server cannot resister')
     }
     return (this.server.plugins as any)[name]
   }

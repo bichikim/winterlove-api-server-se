@@ -201,7 +201,7 @@ module.exports = {
     'typescript/type-annotation-spacing': [
       'error', {
         'before': false,
-        'after': false,
+        'after': true,
         'overrides': {
           'arrow': {
             'before': true,

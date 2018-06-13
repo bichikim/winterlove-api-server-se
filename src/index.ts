@@ -19,8 +19,8 @@ server.start().then((server: Server) => {
   const {version, info: {protocol, address, port} = {} as any} = server
   console.log(
     `Server is running for ${protocol}://${address}:${port}\n` +
-    `mode: ${process.env.NODE_ENV}\n` +
-    `hapi version: ${version}\n` +
-    `${pkg.name()} version: ${pkg.version()}`,
+      `mode: ${process.env.NODE_ENV}\n` +
+      `hapi version: ${version}\n` +
+      `${pkg.name()} version: ${pkg.version()}`,
   )
 })
