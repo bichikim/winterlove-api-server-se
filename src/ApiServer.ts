@@ -25,13 +25,13 @@ const CLASS_NAME = 'ApiServer'
  * ApiServer constructor & start Options
  */
 export interface IServerOptions extends IArgvServerOptions{
-  jois?: {[name: string]: JoiSchema}
-  types?: IGraphqlTypeConfig[]
-  routes?: IServerRoute[]
-  resolvers?: TResolverFactory[]
   controllers?: {[name: string]: any}
-  plugins?: Array<ServerRegisterPluginObject<any>>
+  jois?: {[name: string]: JoiSchema}
   mongooseUrl?: string
+  plugins?: Array<ServerRegisterPluginObject<any>>
+  resolvers?: TResolverFactory[]
+  routes?: IServerRoute[]
+  types?: IGraphqlTypeConfig[]
 }
 
 /**
