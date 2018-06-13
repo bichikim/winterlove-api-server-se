@@ -9,8 +9,9 @@ import {IServerRoute} from '@/types'
 import getArgv, {IArgvServerOptions} from '@/util/getArgv'
 import getPluginPkg from '@/util/getPluginPkg'
 import {name, version} from '@/util/pkg'
-import {ServerRegisterPluginObject} from 'hapi'
+import {readFile} from 'fs-extra'
 import Hapi, {Server} from 'hapi'
+import {ServerRegisterPluginObject} from 'hapi'
 import hapiSwagger from 'hapi-swagger'
 import inert from 'inert'
 import {Schema as JoiSchema} from 'joi'
@@ -123,10 +124,13 @@ export default class ApiServer implements IAPIServer {
    */
   async start(options: IServerOptions = {}) {
     const {
+      key, cert,
       port, host, mongooseUrl, plugins, jois, types, resolvers, controllers, routes,
     } = this._mergeOptions(options)
 
-    this._server = new Hapi.Server({port, host})
+    const tls = await this._getTsl({key, cert})
+
+    this._server = new Hapi.Server({port, host, tls})
 
     if(mongooseUrl){await mongoose.connect(String(mongooseUrl))}
 
@@ -227,6 +231,34 @@ export default class ApiServer implements IAPIServer {
       resolvers: this.resolvers ? [...this.resolvers].concat(resolvers || []) : resolvers,
       routes: routes.concat(this.routes || []),
       types: this.types ? [...this.types].concat(types || []) : types,
+    }
+  }
+
+  private async _getTsl(options: {key: string, cert: string}): Promise<{key: any, cert: any}> {
+    const {key: _key, cert: _cert} = options
+    if(_key && _cert){
+      return
+    }
+
+    let key, cert
+    try{
+      key = await readFile(_key)
+    }catch(error){
+      this.server.log(['error', 'server', 'read file', 'key'], `cannot find key at ${_key}`)
+      console.error(error)
+      return
+    }
+    try{
+      cert = await readFile(_cert)
+    }catch(error){
+      this.server.log(
+        ['error', 'server', 'read file', 'cert'], `cannot find cert at ${_cert}`)
+      console.error(error)
+      return
+    }
+
+    return {
+      key, cert,
     }
   }
 }
