@@ -117,9 +117,7 @@ export default class ApiServer implements IAPIServer {
     return this
   }
 
-  /**
-   * start server with options
-   */
+  // start server with options
   async start(options: IServerOptions = {}) {
     const {
       key, cert,
