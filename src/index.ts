@@ -8,10 +8,10 @@ import * as pkg from '@/util/pkg'
 import {Server} from 'hapi'
 
 const server = new ApiServer({
-  routes,
   controllers,
   jois: {Docs},
   resolvers,
+  routes,
   types,
 })
 
