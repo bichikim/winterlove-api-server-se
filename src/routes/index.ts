@@ -31,7 +31,7 @@ const routers: IServerRoute[]  = [
       notes: 'Save a info for a main page',
       tags: ['api', 'info'],
       validate: {
-        payload:{
+        payload: {
           data: Joi.string().required(),
         },
       },

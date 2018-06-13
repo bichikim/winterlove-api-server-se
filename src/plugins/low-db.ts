@@ -3,7 +3,7 @@ import Database from 'lowdb'
 import FileAsync from 'lowdb/adapters/FileAsync'
 interface IOptions {
   name?: string
-  bind?: ServerRoute[],
+  bind?: ServerRoute[]
   init?: {[name: string]: any}
 }
 const plugin: Plugin<IOptions> = {

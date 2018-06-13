@@ -181,6 +181,13 @@ module.exports = {
      *************************************/
     // off
     'typescript/explicit-member-accessibility': 'off',
+
+    'typescript/member-ordering': 'off',
+    'typescript/no-empty-interface': 'off',
+    'typescript/no-explicit-any': 'off',
+    'typescript/no-type-alias': 'off',
+    'typescript/no-use-before-define ': 'off',
+    // on
     'typescript/member-delimiter-style': ['error', {
       delimiter: 'none',
       overrides: {
@@ -190,12 +197,6 @@ module.exports = {
         }
       }
     }],
-    'typescript/member-ordering': 'off',
-    'typescript/no-empty-interface': 'off',
-    'typescript/no-explicit-any': 'off',
-    'typescript/no-type-alias': 'off',
-    'typescript/no-use-before-define ': 'off',
-    // on
     'typescript/adjacent-overload-signatures': 'error',
     'typescript/class-name-casing': 'error',
     'typescript/interface-name-prefix': ['error', 'always'],

@@ -7,24 +7,24 @@ import {Schema} from 'Joi'
 import {LowdbAsync} from 'lowdb'
 import {Model} from 'mongoose'
 
-declare interface IServerRoute extends ServerRoute{
+declare interface IServerRoute extends ServerRoute {
   config?: {
-    description?: string
-    notes?: string
-    tags: string[]
-    response?: {}
+    description?: string,
+    notes?: string,
+    tags: string[],
+    response?: {},
     validate?: {
       payload?: {
         [name: string]: Schema,
-      }
+      },
       params?: {
         [name: string]: Schema,
       },
       query?: {
         [name: string]: Schema,
-      }
+      },
       headers?: Schema,
-    }
+    },
     handler: Lifecycle.Method | HandlerDecorations | {
       controller: {
         controller: string,

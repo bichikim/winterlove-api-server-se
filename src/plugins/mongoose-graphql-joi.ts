@@ -20,13 +20,13 @@ interface IOptions {
 }
 
 export interface IGraphqlTypeConfig {
-  name: string,
-  description?: string,
-  class: string,
-  schema: Mongoose.Schema | string,
-  exclude?: RegExp | string[],
-  extend?: ExtendFieldType,
-  fields?: ObjectKeyStringValueAnyType,
+  name: string
+  description?: string
+  class: string
+  schema: Mongoose.Schema | string
+  exclude?: RegExp | string[]
+  extend?: ExtendFieldType
+  fields?: ObjectKeyStringValueAnyType
 }
 const pluginName = 'mongoose-graphql-joi'
 const plugin: Plugin<IOptions> = {
