@@ -220,6 +220,7 @@ export default class ApiServer implements IAPIServer {
       throw error
     }
 
+    this.log(['success', 'hapi', 'start'], 'server start')
     return this.server
   }
 
