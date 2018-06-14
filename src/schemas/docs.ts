@@ -1,13 +1,24 @@
-import Joi from 'joi'
+import {
+  GraphQLObjectType,
+  GraphQLSchema,
+  GraphQLString,
+} from 'graphql'
 
-export const title = Joi.string()
-export const description = Joi.string()
-export const ok = Joi.boolean()
+class Docs {
+  message: string = 'hello'
+  get() {
+    return this.message
+  }
+}
 
-export const doc = Joi.object().keys({
-  title: title.required(),
-  description: description.required(),
-  ok,
+export default new GraphQLSchema({
+  query: new GraphQLObjectType({
+    name: 'RootQueryType',
+    fields: {
+      Docs: {
+        type: GraphQLString,
+        resolve: () => (new Docs()),
+      },
+    },
+  }),
 })
-
-export default doc

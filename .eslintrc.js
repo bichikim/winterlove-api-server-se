@@ -1,6 +1,6 @@
 /* eslint-disable max-len,no-magic-numbers */
 module.exports = {
-  'plugins': ['html', 'vue', 'typescript'],
+  'plugins': ['html', 'vue', 'typescript',],
   'env': {
     'commonjs': true,
     'browser': true,
@@ -90,7 +90,7 @@ module.exports = {
     }],
     'max-depth': ['error', {'max': 4}],
     'max-len': ['error', 100],
-    'max-lines': 'error',
+    'max-lines': ['error', 1000],
     'max-nested-callbacks': ['error', {'max': 3}],
     'max-params': ['error', {'max': 6}],
     'max-statements-per-line': ['error', {'max': 2}],
@@ -181,13 +181,22 @@ module.exports = {
      *************************************/
     // off
     'typescript/explicit-member-accessibility': 'off',
-    'typescript/member-delimiter-style': 'off',
+
     'typescript/member-ordering': 'off',
     'typescript/no-empty-interface': 'off',
     'typescript/no-explicit-any': 'off',
     'typescript/no-type-alias': 'off',
     'typescript/no-use-before-define ': 'off',
     // on
+    'typescript/member-delimiter-style': ['error', {
+      delimiter: 'none',
+      overrides: {
+        typeLiteral: {
+          delimiter: "comma",
+          requireLast: true,
+        }
+      }
+    }],
     'typescript/adjacent-overload-signatures': 'error',
     'typescript/class-name-casing': 'error',
     'typescript/interface-name-prefix': ['error', 'always'],
@@ -201,7 +210,7 @@ module.exports = {
     'typescript/type-annotation-spacing': [
       'error', {
         'before': false,
-        'after': false,
+        'after': true,
         'overrides': {
           'arrow': {
             'before': true,

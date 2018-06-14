@@ -14,7 +14,7 @@ const plugin: Plugin<IOptions> = {
     process.on('SIGINT', () => {
       server.log(['info', 'pm2', 'shutdown'], 'stopping hapi...')
       server.stop(options).then(() => {
-        server.log(['info', 'pm2', 'shutdown'], 'hapi stopped')
+        server.log(['info', 'hapi', 'stop'], 'hapi stopped')
         return process.exit(0)
       })
     })
