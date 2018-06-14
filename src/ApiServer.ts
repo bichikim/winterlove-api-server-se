@@ -1,13 +1,12 @@
 import controllersRoutes from '@/plugins/controllers-routes/'
+import graphqlHapi from '@/plugins/graphql-hapi'
 import lowDB from '@/plugins/low-db'
 import pm2ZeroDownTime from '@/plugins/pm2-zero-down-time'
 import {IServerRoute} from '@/types'
 import getArgv, {IArgvServerOptions} from '@/util/getArgv'
 import getPluginPkg from '@/util/getPluginPkg'
 import {name, version} from '@/util/pkg'
-import {graphqlHapi} from 'apollo-server-hapi'
 import {readFile} from 'fs-extra'
-import {makeExecutableSchema} from 'graphql-tools'
 import Hapi, {Plugin, Server} from 'hapi'
 import {ServerRegisterPluginObject} from 'hapi'
 import hapiSwagger from 'hapi-swagger'
@@ -128,10 +127,6 @@ export default class ApiServer implements IAPIServer {
       key, cert, schema,
       port, host, mongooseUrl, plugins, controllers, routes,
     } = this._mergeOptions(options)
-
-    const c = makeExecutableSchema({
-
-    })
 
     // key & cert for https
     const tls = await this._getTsl({key, cert})
