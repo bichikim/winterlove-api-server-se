@@ -1,20 +1,17 @@
 import controllersRoutes from '@/plugins/controllers-routes/'
 import lowDB from '@/plugins/low-db'
-import mongooseGraphqlJoi, {
-  IGraphqlTypeConfig,
-  TResolverFactory,
-} from '@/plugins/mongoose-graphql-joi'
 import pm2ZeroDownTime from '@/plugins/pm2-zero-down-time'
 import {IServerRoute} from '@/types'
 import getArgv, {IArgvServerOptions} from '@/util/getArgv'
 import getPluginPkg from '@/util/getPluginPkg'
 import {name, version} from '@/util/pkg'
+import {graphqlHapi} from 'apollo-server-hapi'
 import {readFile} from 'fs-extra'
+import {makeExecutableSchema} from 'graphql-tools'
 import Hapi, {Plugin, Server} from 'hapi'
 import {ServerRegisterPluginObject} from 'hapi'
 import hapiSwagger from 'hapi-swagger'
 import inert from 'inert'
-import {Schema as JoiSchema} from 'joi'
 import mongoose from 'mongoose'
 import vision from 'vision'
 // const
@@ -25,13 +22,11 @@ const CLASS_NAME = 'ApiServer'
  * ApiServer constructor & start Options
  */
 export interface IServerOptions extends IArgvServerOptions {
+  schema?: any[] | any
   controllers?: {[name: string]: any}
-  jois?: {[name: string]: JoiSchema}
   mongooseUrl?: string
   plugins?: Array<ServerRegisterPluginObject<any>>
-  resolvers?: TResolverFactory[]
   routes?: IServerRoute[]
-  types?: IGraphqlTypeConfig[]
 }
 
 /**
@@ -40,16 +35,14 @@ export interface IServerOptions extends IArgvServerOptions {
 export interface IAPIServer {
   // origin hapi server
   readonly server: Server
+  readonly schema: any[] | any
   readonly cert: string
   readonly host: string
-  readonly jois: {[name: string]: JoiSchema}
   readonly key: string
   readonly mongooseUrl: string
   readonly plugins: Array<ServerRegisterPluginObject<any>>
   readonly port: number
   readonly protocol: string
-  readonly resolvers: TResolverFactory[]
-  readonly types: IGraphqlTypeConfig[]
   readonly routes: IServerRoute[]
   readonly controllers: {[name: string]: any}
 
@@ -69,14 +62,12 @@ export default class ApiServer implements IAPIServer {
   readonly cert: string
   readonly controllers: {[name: string]: any}
   readonly host: string
-  readonly jois: {[name: string]: JoiSchema}
   readonly key: string
   readonly mongooseUrl: string
   readonly port: number
   readonly protocol: string
-  readonly resolvers: TResolverFactory[]
   readonly routes: IServerRoute[]
-  readonly types: IGraphqlTypeConfig[]
+  readonly schema: any[] | any
 
   private _logBeforeServerCreate: Array<{tag: string[], massage: string}>
 
@@ -87,22 +78,20 @@ export default class ApiServer implements IAPIServer {
   get server(): Server {return this._server}
 
   constructor(options: IServerOptions = {}) {
-    const {jois, types, resolvers, mongooseUrl, plugins, controllers, routes, ...others} = options
+    const {mongooseUrl, plugins, controllers, routes, schema, ...others} = options
     const serverOptions = Object.assign(others, getArgv(process.argv.slice(ARGV_SKIP)))
     const {port, host, protocol, key, cert} = serverOptions
 
     this.cert = cert
     this.controllers = controllers
     this.host = host
-    this.jois = jois
     this.key = key
     this.mongooseUrl = mongooseUrl
     this._plugins = plugins
     this.port = port
     this.protocol = protocol
-    this.resolvers = resolvers
     this.routes = routes
-    this.types = types
+    this.schema = schema
   }
 
   // register a plugin before start server
@@ -136,9 +125,13 @@ export default class ApiServer implements IAPIServer {
   // start server with options
   async start(options: IServerOptions = {}) {
     const {
-      key, cert,
-      port, host, mongooseUrl, plugins, jois, types, resolvers, controllers, routes,
+      key, cert, schema,
+      port, host, mongooseUrl, plugins, controllers, routes,
     } = this._mergeOptions(options)
+
+    const c = makeExecutableSchema({
+
+    })
 
     // key & cert for https
     const tls = await this._getTsl({key, cert})
@@ -156,7 +149,7 @@ export default class ApiServer implements IAPIServer {
 
     // no mongoose url no using mongoose
     if(mongooseUrl){
-      waitingPipe.push(mongoose.connect(String(mongooseUrl)))
+      await mongoose.connect(mongooseUrl)
     }
 
     ///////////////////////////////
@@ -177,23 +170,31 @@ export default class ApiServer implements IAPIServer {
     //////////////////////////
     waitingPipe.push(
       this._registerAll([
-        {plugin: hapiSwagger, options: {
-          info: {
-            title: name(),
-            version: version(),
-          },
-          documentationPage: !this.production,
-          swaggerUI: !this.production,
-        }},
+        {
+          plugin: hapiSwagger,
+          options: {
+            info: {
+              title: name(),
+              version: version(),
+            },
+            documentationPage: !this.production,
+            swaggerUI: !this.production,
+          }},
         {plugin: pm2ZeroDownTime},
+        {
+          plugin: graphqlHapi,
+          options: {
+            path: '/graphql',
+            graphqlOptions: {
+              schema,
+            },
+            route: {
+              cors: true,
+            },
+          },
+        },
       ]),
     )
-
-    if(jois && types && resolvers){
-      waitingPipe.push(this._register(mongooseGraphqlJoi, {
-        jois, types, resolvers,
-      }))
-    }
 
     ///////////////////////////
     // register controllersRoutes
@@ -285,33 +286,35 @@ export default class ApiServer implements IAPIServer {
   // merge options with this options
   private _mergeOptions(options: IServerOptions) {
     const {
+      // jois,
+      // resolvers,
       cert = this.cert,
+      controllers,
       host = this.host,
-      jois,
       key = this.key,
       mongooseUrl = this.mongooseUrl,
       plugins = [],
       port = this.port,
       protocol = this.protocol,
-      resolvers,
-      controllers,
       routes = [],
-      types,
+      schema = this.schema,
+      // types,
     } = options
     return {
+      // jois: this.jois ? Object.assign({}, this.jois, jois || {}) : jois,
+      // resolvers: this.resolvers ? [...this.resolvers].concat(resolvers || []) : resolvers,
       cert,
       controllers: this.controllers ?
         Object.assign({}, this.controllers, controllers || {}) : controllers,
       host,
-      jois: this.jois ? Object.assign({}, this.jois, jois || {}) : jois,
       key,
       mongooseUrl,
       plugins: plugins.concat(this.plugins || []),
       port,
       protocol,
-      resolvers: this.resolvers ? [...this.resolvers].concat(resolvers || []) : resolvers,
       routes: routes.concat(this.routes || []),
-      types: this.types ? [...this.types].concat(types || []) : types,
+      schema,
+      // types: this.types ? [...this.types].concat(types || []) : types,
     }
   }
 
