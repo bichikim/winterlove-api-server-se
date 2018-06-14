@@ -28,6 +28,7 @@ export interface IGraphqlTypeConfig {
   extend?: ExtendFieldType
   fields?: ObjectKeyStringValueAnyType
 }
+
 const pluginName = 'mongoose-graphql-joi'
 const plugin: Plugin<IOptions> = {
   name: pluginName,
