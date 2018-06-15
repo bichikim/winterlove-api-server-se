@@ -1,5 +1,6 @@
 import ApiServer from '@/ApiServer'
 import controllers from '@/controllers'
+import mongooseSchemas from '@/mongoose-schemas'
 import resolvers from '@/resolvers'
 import routes from '@/routes'
 import typeDefs from '@/type-defs'
@@ -19,6 +20,7 @@ console.log(
 
 const server = new ApiServer({
   ...config,
+  mongooseSchemas,
   resolvers,
   typeDefs,
   controllers,

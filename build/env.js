@@ -16,7 +16,6 @@ try{
 }catch(e){
   config = {}
 }
-console.log(config)
 const {mongoDBUrl, cert, host, key, port} = config
 config = {mongoDBUrl, cert, host, key, port}
 module.exports = (webpackConfig) => {
