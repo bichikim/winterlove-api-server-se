@@ -35,7 +35,9 @@ declare interface IServerRoute extends ServerRoute {
 }
 
 declare interface IContext {
+  models: {[name: string]: Model<any>}
   lowDB(): LowdbAsync<any>
+  [name: string]: any
 }
 
 declare interface IModels {

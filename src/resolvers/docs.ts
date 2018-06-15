@@ -1,20 +1,20 @@
-import {Model} from 'mongoose'
+import {IContext} from '@/types'
 
-export default (models: {[name: string]: Model<any>}) => {
+export default ({models}: IContext) => {
   return {
     Query: {
-      async getDocsById(root: any, {id}: {id: any}) {
+      async doc(root: any, {id}: {id: any}) {
         return await models.User.findById(id)
       },
-      async getUserByEmail(root: any, {email}: {email: string}) {
-        return await models.User.findOne({email})
+      async docs(root: any, {offset, take}: {offset: number, take: number}) {
+        return await models.User.find().skip(offset).limit(take)
       },
     },
-    Mutation: {
-      async createUser(root: any, args: any) {
-        const user = new models.User(args)
-        return await user.save()
-      },
-    },
+    // Mutation: {
+    //   async createDoc(root: any, args: any) {
+    //     const user = new models.User(args)
+    //     return await user.save()
+    //   },
+    // },
   }
 }

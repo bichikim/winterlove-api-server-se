@@ -1,10 +1,14 @@
 import ApiServer from '@/ApiServer'
 import controllers from '@/controllers'
+import resolvers from '@/resolvers'
 import routes from '@/routes'
+import typeDefs from '@/type-defs'
 import * as pkg from '@/util/pkg'
 import {Server} from 'hapi'
 
 const server = new ApiServer({
+  resolvers,
+  typeDefs,
   controllers,
   routes,
 })

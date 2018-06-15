@@ -1,0 +1,12 @@
+type Query {
+  doc(id: String!): Doc
+  docs(offset: Float = 0, take: Float = 5): [Doc!]!
+}
+
+type Doc {
+  _id: ID
+  title: String!
+  description: String!
+  ok: Boolean
+  time: Float!
+}

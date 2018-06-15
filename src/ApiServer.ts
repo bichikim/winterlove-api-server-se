@@ -1,5 +1,5 @@
 import controllersRoutes from '@/plugins/controllers-routes/'
-import graphqlHapi from '@/plugins/graphql-hapi'
+import graphqlHapi, {TResolverFactory} from '@/plugins/graphql-hapi'
 import lowDB from '@/plugins/low-db'
 import pm2ZeroDownTime from '@/plugins/pm2-zero-down-time'
 import {IServerRoute} from '@/types'
@@ -7,6 +7,7 @@ import getArgv, {IArgvServerOptions} from '@/util/getArgv'
 import getPluginPkg from '@/util/getPluginPkg'
 import {name, version} from '@/util/pkg'
 import {readFile} from 'fs-extra'
+import {ITypedef} from 'graphql-tools'
 import Hapi, {Plugin, Server} from 'hapi'
 import {ServerRegisterPluginObject} from 'hapi'
 import hapiSwagger from 'hapi-swagger'
@@ -21,11 +22,15 @@ const CLASS_NAME = 'ApiServer'
  * ApiServer constructor & start Options
  */
 export interface IServerOptions extends IArgvServerOptions {
-  schema?: any[] | any
+  // for graphql
+  resolvers?: TResolverFactory[]
+  typeDefs?: ITypedef[]
+  // for controllers-routes
   controllers?: {[name: string]: any}
+  routes?: IServerRoute[]
+  // for mongoose
   mongooseUrl?: string
   plugins?: Array<ServerRegisterPluginObject<any>>
-  routes?: IServerRoute[]
 }
 
 /**
@@ -33,17 +38,18 @@ export interface IServerOptions extends IArgvServerOptions {
  */
 export interface IAPIServer {
   // origin hapi server
-  readonly server: Server
-  readonly schema: any[] | any
   readonly cert: string
+  readonly controllers: {[name: string]: any}
   readonly host: string
   readonly key: string
   readonly mongooseUrl: string
   readonly plugins: Array<ServerRegisterPluginObject<any>>
   readonly port: number
   readonly protocol: string
+  readonly resolvers: TResolverFactory[]
   readonly routes: IServerRoute[]
-  readonly controllers: {[name: string]: any}
+  readonly server: Server
+  readonly typeDefs: ITypedef[]
 
   register(plugin: Plugin<any>, options?: any): IAPIServer
   start(options?: IServerOptions): Promise<Server>
@@ -65,8 +71,9 @@ export default class ApiServer implements IAPIServer {
   readonly mongooseUrl: string
   readonly port: number
   readonly protocol: string
+  readonly resolvers: TResolverFactory[]
   readonly routes: IServerRoute[]
-  readonly schema: any[] | any
+  readonly typeDefs: ITypedef[]
 
   private _logBeforeServerCreate: Array<{tag: string[], massage: string}>
 
@@ -77,7 +84,11 @@ export default class ApiServer implements IAPIServer {
   get server(): Server {return this._server}
 
   constructor(options: IServerOptions = {}) {
-    const {mongooseUrl, plugins, controllers, routes, schema, ...others} = options
+    const {
+      mongooseUrl, plugins, controllers, routes,
+      // eslint-disable-next-line comma-dangle
+      resolvers, typeDefs,
+      ...others} = options
     const serverOptions = Object.assign(others, getArgv(process.argv.slice(ARGV_SKIP)))
     const {port, host, protocol, key, cert} = serverOptions
 
@@ -90,7 +101,8 @@ export default class ApiServer implements IAPIServer {
     this.port = port
     this.protocol = protocol
     this.routes = routes
-    this.schema = schema
+    this.resolvers = resolvers
+    this.typeDefs = typeDefs
   }
 
   // register a plugin before start server
@@ -124,7 +136,7 @@ export default class ApiServer implements IAPIServer {
   // start server with options
   async start(options: IServerOptions = {}) {
     const {
-      key, cert, schema,
+      key, cert, typeDefs, resolvers,
       port, host, mongooseUrl, plugins, controllers, routes,
     } = this._mergeOptions(options)
 
@@ -163,48 +175,45 @@ export default class ApiServer implements IAPIServer {
     ///////////////////////////
     // register default plugins
     //////////////////////////
-    waitingPipe.push(
-      this._registerAll([
-        {
-          plugin: hapiSwagger,
-          options: {
-            info: {
-              title: name(),
-              version: version(),
-            },
-            documentationPage: !this.production,
-            swaggerUI: !this.production,
-          }},
-        {plugin: pm2ZeroDownTime},
-        {
-          plugin: graphqlHapi,
-          options: {
-            path: '/graphql',
-            graphqlOptions: {
-              schema,
-            },
-            route: {
-              cors: true,
-            },
-          },
-        },
-      ]),
-    )
+    waitingPipe.push(this._register(pm2ZeroDownTime))
+
+    ///////////////////////////
+    // graphql
+    //////////////////////////
+    if(typeDefs && resolvers && typeDefs.length > 0){
+      waitingPipe.push(this._register(graphqlHapi, {
+        typeDefs,
+        resolverFactories: resolvers,
+        path: '/graphql',
+      }))
+    }
 
     ///////////////////////////
     // register controllersRoutes
     //////////////////////////
-    waitingPipe.push(
-      (async () => {
-        const {db} = await this._register(lowDB)
-        // controllers have mongoose.models
-        await this._register(controllersRoutes, {
-          routes,
-          controllers,
-          context: {lowDB: db},
-        })
-      })(),
-    )
+    if(routes && controllers){
+      waitingPipe.push(this._register(hapiSwagger, {
+        info: {
+          title: name(),
+          version: version(),
+        },
+        documentationPage: !this.production,
+        swaggerUI: !this.production,
+      }))
+      waitingPipe.push(
+        (async () => {
+          const {db} = await this._register(lowDB)
+          // controllers have mongoose.models
+          await this._register(controllersRoutes, {
+            routes,
+            controllers,
+            context: {
+              lowDB: db,
+            },
+          })
+        })(),
+      )
+    }
 
     // wait all plugin registrations
     await Promise.all(waitingPipe)
@@ -292,7 +301,8 @@ export default class ApiServer implements IAPIServer {
       port = this.port,
       protocol = this.protocol,
       routes = [],
-      schema = this.schema,
+      typeDefs = [],
+      resolvers = [],
       // types,
     } = options
     return {
@@ -308,7 +318,8 @@ export default class ApiServer implements IAPIServer {
       port,
       protocol,
       routes: routes.concat(this.routes || []),
-      schema,
+      typeDefs: typeDefs.concat(this.typeDefs || []),
+      resolvers: resolvers.concat(this.resolvers || []),
       // types: this.types ? [...this.types].concat(types || []) : types,
     }
   }
@@ -328,6 +339,7 @@ export default class ApiServer implements IAPIServer {
       await this.server.register({plugin, options})
     }catch(error){
       this.log(['error', name, 'register'], 'server cannot resister')
+      throw error
     }
     return (this.server.plugins as any)[name]
   }
