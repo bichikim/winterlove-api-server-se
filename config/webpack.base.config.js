@@ -37,6 +37,11 @@ module.exports = {
         },
       },
       {
+        test: /\.graphql?$/,
+        exclude: /node_modules/,
+        loader: 'webpack-graphql-loader',
+      },
+      {
         test: /\.ts$/,
         exclude: /node_modules/,
         use: [
@@ -51,9 +56,6 @@ module.exports = {
       {
         test: /\.js$/,
         exclude: /node_modules/,
-        include: [
-          resolve('./node_modules/vision/lib/manager.js'),
-        ],
         use: 'babel-loader',
       },
     ],
