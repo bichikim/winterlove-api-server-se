@@ -1,7 +1,8 @@
 process.env.NODE_ENV = 'development'
 const webpack = require('webpack')
 const webpackConfig = require('../config/webpack.dev.config')
-webpack(webpackConfig, function(error, stats) {
+const env = require('./env')
+webpack(env(webpackConfig), function(error, stats) {
   if(error){
     throw error
   }

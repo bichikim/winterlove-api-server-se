@@ -8,8 +8,17 @@ import * as pkg from '@/util/pkg'
 import {Server} from 'hapi'
 const ARGV_SKIP = 2
 
+const config = getArgv(process.argv.slice(ARGV_SKIP))
+console.log(
+  'config options \n' +
+  `port: ${config.port}\n` +
+  `host: ${config.host}\n` +
+  `cert: ${config.cert}\n` +
+  `mongoDBUrl: ${config.mongoDBUrl}\n`,
+)
+
 const server = new ApiServer({
-  ...getArgv(process.argv.slice(ARGV_SKIP)),
+  ...config,
   resolvers,
   typeDefs,
   controllers,

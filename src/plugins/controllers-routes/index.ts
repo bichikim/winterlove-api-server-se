@@ -18,7 +18,7 @@ const plugin: Plugin<IOptions<any, any>> = {
     Object.freeze(context)
     const controllerInstances: any = {}
     forEach(controllers, (controller: any, key: string) => {
-      controllerInstances[key] = new controller(server, Mongoose.models, context)
+      controllerInstances[key] = new controller(server, context)
     })
 
     const handler = (route: any, options: any) => {

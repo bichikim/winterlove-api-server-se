@@ -12,7 +12,8 @@ import Hapi, {Plugin, Server} from 'hapi'
 import {ServerRegisterPluginObject} from 'hapi'
 import hapiSwagger from 'hapi-swagger'
 import inert from 'inert'
-import mongoose from 'mongoose'
+import {forEach} from 'lodash'
+import Mongoose, {Schema} from 'mongoose'
 import vision from 'vision'
 // const
 const CLASS_NAME = 'ApiServer'
@@ -28,7 +29,7 @@ export interface IServerOptions extends IArgvServerOptions {
   controllers?: {[name: string]: any}
   routes?: IServerRoute[]
   // for mongoose
-  mongooseSchema?: {[name: string]: any}
+  mongooseSchemas?: {[name: string]: Schema}
   // plugins
   plugins?: Array<ServerRegisterPluginObject<any>>
 }
@@ -50,6 +51,7 @@ export interface IAPIServer {
   readonly routes: IServerRoute[]
   readonly server: Server
   readonly typeDefs: ITypedef[]
+  readonly mongooseSchemas: {[name: string]: Schema}
 
   register(plugin: Plugin<any>, options?: any): IAPIServer
   start(options?: IServerOptions): Promise<Server>
@@ -74,6 +76,7 @@ export default class ApiServer implements IAPIServer {
   readonly resolvers: TResolverFactory[]
   readonly routes: IServerRoute[]
   readonly typeDefs: ITypedef[]
+  readonly mongooseSchemas: {[name: string]: Schema}
 
   private _logBeforeServerCreate: Array<{tag: string[], massage: string}>
 
@@ -85,7 +88,7 @@ export default class ApiServer implements IAPIServer {
 
   constructor(options: IServerOptions = {}) {
     const {
-      mongoDBUrl, plugins, controllers, routes,
+      mongoDBUrl, plugins, controllers, routes, mongooseSchemas,
       resolvers, typeDefs, port, host, key, cert,
     } = options
     this.cert = cert
@@ -98,6 +101,7 @@ export default class ApiServer implements IAPIServer {
     this.routes = routes
     this.resolvers = resolvers
     this.typeDefs = typeDefs
+    this.mongooseSchemas = mongooseSchemas
   }
 
   // register a plugin before start server
@@ -131,7 +135,7 @@ export default class ApiServer implements IAPIServer {
   // start server with options
   async start(options: IServerOptions = {}) {
     const {
-      key, cert, typeDefs, resolvers,
+      key, cert, typeDefs, resolvers, mongooseSchemas,
       port, host, mongoDBUrl, plugins, controllers, routes,
     } = this._mergeOptions(options)
 
@@ -145,13 +149,14 @@ export default class ApiServer implements IAPIServer {
     const waitingPipe = []
 
     this._server = new Hapi.Server({port, host, tls})
+    this._registerSchema(mongooseSchemas)
 
     // run works
     this._afterCreateServer()
 
     // no mongoose url no using mongoose
     if(mongoDBUrl){
-      await mongoose.connect(mongoDBUrl)
+      await Mongoose.connect(mongoDBUrl)
     }
 
     ///////////////////////////////
@@ -292,6 +297,7 @@ export default class ApiServer implements IAPIServer {
       host = this.host,
       key = this.key,
       mongoDBUrl = this.mongoDBUrl,
+      mongooseSchemas = {},
       plugins = [],
       port = this.port,
       routes = [],
@@ -308,6 +314,9 @@ export default class ApiServer implements IAPIServer {
       host,
       key,
       mongoDBUrl,
+      mongooseSchemas: this.mongooseSchemas ?
+        Object.assign({}, this.mongooseSchemas, mongooseSchemas || {})
+        : mongooseSchemas,
       plugins: plugins.concat(this.plugins || []),
       port,
       routes: routes.concat(this.routes || []),
@@ -335,5 +344,13 @@ export default class ApiServer implements IAPIServer {
       throw error
     }
     return (this.server.plugins as any)[name]
+  }
+
+  // eslint-disable-next-line class-methods-use-this
+  private _registerSchema(schemas: {[name: string]: Schema}) {
+    forEach(schemas, (value, name) => {
+      Mongoose.model(name, value)
+    })
+    return Mongoose.models
   }
 }
