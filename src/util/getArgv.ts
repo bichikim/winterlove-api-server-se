@@ -1,11 +1,11 @@
 import parseArgs from 'minimist'
 
 export interface IArgvServerOptions {
-  protocol?: string
-  port?: number
+  cert?: string
   host?: string
   key?: string
-  cert?: string
+  mongoDBUrl?: string
+  port?: number
 }
 
 function number(data: number, defaultData: number) {
@@ -23,6 +23,7 @@ export default function getArgv(_argv: any): IArgvServerOptions {
   }
   const argv = parseArgs(_argv, {
     alias: {
+      d: 'mongoDB',
       r: 'protocol',
       p: 'port',
       h: 'host',
@@ -31,17 +32,12 @@ export default function getArgv(_argv: any): IArgvServerOptions {
     },
   })
   // define option values
-  const port: number = number(argv.port || process.env.port, defaults.port)
-  const host: string = argv.host || process.env.host || defaults.host
   const cert: string = argv.cert || process.env.cert
+  const host: string = argv.host || process.env.host || defaults.host
   const key: string = argv.key || process.env.key
-  let protocol: string
-  if(!cert || !key){
-    protocol =  'http'
-  }else{
-    protocol = argv.protocol || process.env.protocol || 'https'
-  }
+  const mongoDBUrl = argv.mongoDBUrl || process.env.mongoDBUrl
+  const port: number = number(argv.port || process.env.port, defaults.port)
   return {
-    port, host, cert, key, protocol,
+    port, host, cert, key, mongoDBUrl,
   }
 }

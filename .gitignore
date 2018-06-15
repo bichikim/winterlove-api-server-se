@@ -29,6 +29,7 @@ debug.log*
 #yarn.lock
 package-lock.json
 .env
+.env.js
 
 ## Editor directories and files
 .idea

@@ -3,7 +3,7 @@ import graphqlHapi, {TResolverFactory} from '@/plugins/graphql-hapi'
 import lowDB from '@/plugins/low-db'
 import pm2ZeroDownTime from '@/plugins/pm2-zero-down-time'
 import {IServerRoute} from '@/types'
-import getArgv, {IArgvServerOptions} from '@/util/getArgv'
+import {IArgvServerOptions} from '@/util/getArgv'
 import getPluginPkg from '@/util/getPluginPkg'
 import {name, version} from '@/util/pkg'
 import {readFile} from 'fs-extra'
@@ -15,7 +15,6 @@ import inert from 'inert'
 import mongoose from 'mongoose'
 import vision from 'vision'
 // const
-const ARGV_SKIP = 2
 const CLASS_NAME = 'ApiServer'
 
 /**
@@ -29,7 +28,8 @@ export interface IServerOptions extends IArgvServerOptions {
   controllers?: {[name: string]: any}
   routes?: IServerRoute[]
   // for mongoose
-  mongooseUrl?: string
+  mongooseSchema?: {[name: string]: any}
+  // plugins
   plugins?: Array<ServerRegisterPluginObject<any>>
 }
 
@@ -42,7 +42,7 @@ export interface IAPIServer {
   readonly controllers: {[name: string]: any}
   readonly host: string
   readonly key: string
-  readonly mongooseUrl: string
+  readonly mongoDBUrl: string
   readonly plugins: Array<ServerRegisterPluginObject<any>>
   readonly port: number
   readonly protocol: string
@@ -68,7 +68,7 @@ export default class ApiServer implements IAPIServer {
   readonly controllers: {[name: string]: any}
   readonly host: string
   readonly key: string
-  readonly mongooseUrl: string
+  readonly mongoDBUrl: string
   readonly port: number
   readonly protocol: string
   readonly resolvers: TResolverFactory[]
@@ -85,21 +85,16 @@ export default class ApiServer implements IAPIServer {
 
   constructor(options: IServerOptions = {}) {
     const {
-      mongooseUrl, plugins, controllers, routes,
-      // eslint-disable-next-line comma-dangle
-      resolvers, typeDefs,
-      ...others} = options
-    const serverOptions = Object.assign(others, getArgv(process.argv.slice(ARGV_SKIP)))
-    const {port, host, protocol, key, cert} = serverOptions
-
+      mongoDBUrl, plugins, controllers, routes,
+      resolvers, typeDefs, port, host, key, cert,
+    } = options
     this.cert = cert
     this.controllers = controllers
     this.host = host
     this.key = key
-    this.mongooseUrl = mongooseUrl
+    this.mongoDBUrl = mongoDBUrl
     this._plugins = plugins
     this.port = port
-    this.protocol = protocol
     this.routes = routes
     this.resolvers = resolvers
     this.typeDefs = typeDefs
@@ -137,7 +132,7 @@ export default class ApiServer implements IAPIServer {
   async start(options: IServerOptions = {}) {
     const {
       key, cert, typeDefs, resolvers,
-      port, host, mongooseUrl, plugins, controllers, routes,
+      port, host, mongoDBUrl, plugins, controllers, routes,
     } = this._mergeOptions(options)
 
     // key & cert for https
@@ -155,8 +150,8 @@ export default class ApiServer implements IAPIServer {
     this._afterCreateServer()
 
     // no mongoose url no using mongoose
-    if(mongooseUrl){
-      await mongoose.connect(mongooseUrl)
+    if(mongoDBUrl){
+      await mongoose.connect(mongoDBUrl)
     }
 
     ///////////////////////////////
@@ -296,10 +291,9 @@ export default class ApiServer implements IAPIServer {
       controllers,
       host = this.host,
       key = this.key,
-      mongooseUrl = this.mongooseUrl,
+      mongoDBUrl = this.mongoDBUrl,
       plugins = [],
       port = this.port,
-      protocol = this.protocol,
       routes = [],
       typeDefs = [],
       resolvers = [],
@@ -313,10 +307,9 @@ export default class ApiServer implements IAPIServer {
         Object.assign({}, this.controllers, controllers || {}) : controllers,
       host,
       key,
-      mongooseUrl,
+      mongoDBUrl,
       plugins: plugins.concat(this.plugins || []),
       port,
-      protocol,
       routes: routes.concat(this.routes || []),
       typeDefs: typeDefs.concat(this.typeDefs || []),
       resolvers: resolvers.concat(this.resolvers || []),

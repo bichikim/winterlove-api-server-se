@@ -4,8 +4,8 @@ import {IArgvServerOptions} from './getArgv'
 import {name} from './pkg'
 
 export function getListener(options: IArgvServerOptions = {}): Http2Server | Http2SecureServer {
-  const {protocol = 'http', key, cert} = options
-  if(protocol === 'https'){
+  const {key, cert} = options
+  if(key && cert){
     if(!key || !cert){
       throw new Error(`[${name()}] key -> ${key} or cert -> ${cert} is not defined`)
     }

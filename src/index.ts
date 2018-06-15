@@ -3,10 +3,13 @@ import controllers from '@/controllers'
 import resolvers from '@/resolvers'
 import routes from '@/routes'
 import typeDefs from '@/type-defs'
+import getArgv from '@/util/getArgv'
 import * as pkg from '@/util/pkg'
 import {Server} from 'hapi'
+const ARGV_SKIP = 2
 
 const server = new ApiServer({
+  ...getArgv(process.argv.slice(ARGV_SKIP)),
   resolvers,
   typeDefs,
   controllers,

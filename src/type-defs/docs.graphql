@@ -4,9 +4,13 @@ type Query {
 }
 
 type Doc {
-  _id: ID
+  _id: ID!
   title: String!
   description: String!
-  ok: Boolean
+  ok: Boolean!
   time: Float!
+}
+
+type Mutation {
+  add(title: String!, description: String!): Doc
 }
