@@ -11,11 +11,8 @@ import {ITypedef} from 'graphql-tools'
 import Hapi, {Plugin, Server} from 'hapi'
 import {ServerRegisterPluginObject} from 'hapi'
 import hapiPino from 'hapi-pino'
-import hapiSwagger from 'hapi-swagger'
-import inert from 'inert'
 import {forEach} from 'lodash'
 import Mongoose, {Schema} from 'mongoose'
-import vision from 'vision'
 // const
 const CLASS_NAME = 'ApiServer'
 const DEFAULT_PORT = 8080
@@ -179,7 +176,6 @@ export default class ApiServer implements IAPIServer {
         prettyPrint: !this.production,
       }))
     }
-    console.log(isLog)
 
     ///////////////////////////
     // graphql
@@ -193,32 +189,23 @@ export default class ApiServer implements IAPIServer {
     }
 
     ///////////////////////////
-    // register controllersRoutes
+    // Restful Api
     //////////////////////////
-    if(routes && controllers){
+    if(routes && controllers && routes.length > 0){
       // register plugins for dev mode
-      if(!this.production){
-        // for hapi-Swagger
-        waitingPipe.push(this._registerAll([{plugin: inert}, {plugin: vision}]))
-      }
-      waitingPipe.push(this._register(hapiSwagger, {
-        info: {
-          title: name(),
-          version: version(),
-        },
-        documentationPage: !this.production,
-        swaggerUI: !this.production,
-      }))
       waitingPipe.push(
         (async () => {
           const {db} = await this._register(lowDB)
           // controllers have mongoose.models
           await this._register(controllersRoutes, {
+            title: name(),
+            version: version(),
             routes,
             controllers,
             context: {
               lowDB: db,
             },
+            production: this.production,
           })
         })(),
       )
@@ -297,8 +284,6 @@ export default class ApiServer implements IAPIServer {
   // merge options with this options
   private _mergeOptions(options: IServerOptions) {
     const {
-      // jois,
-      // resolvers,
       cert = this.cert,
       controllers,
       host = this.host,
@@ -311,11 +296,8 @@ export default class ApiServer implements IAPIServer {
       typeDefs = [],
       resolvers = [],
       isLog = this.isLog,
-      // types,
     } = options
     return {
-      // jois: this.jois ? Object.assign({}, this.jois, jois || {}) : jois,
-      // resolvers: this.resolvers ? [...this.resolvers].concat(resolvers || []) : resolvers,
       cert,
       controllers: this.controllers ?
         Object.assign({}, this.controllers, controllers || {}) : controllers,
@@ -331,7 +313,6 @@ export default class ApiServer implements IAPIServer {
       typeDefs: typeDefs.concat(this.typeDefs || []),
       isLog,
       resolvers: resolvers.concat(this.resolvers || []),
-      // types: this.types ? [...this.types].concat(types || []) : types,
     }
   }
 

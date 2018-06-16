@@ -1,24 +1,58 @@
 import {Plugin, Server} from 'hapi'
+import {ServerRoute} from 'hapi'
+import hapiSwagger from 'hapi-swagger'
+import inert from 'inert'
 import {camelCase, capitalize, forEach} from 'lodash'
 import Mongoose from 'mongoose'
+import vision from 'vision'
 import Controller, {IController} from './Controller'
-import {IOptions} from './types'
 export {Controller, IController}
+
+export interface IOptions<C, M> {
+  title?: string
+  version?: string
+  controllers?: {[name: string]: typeof Controller}
+  routes?: ServerRoute[]
+  context?: C
+  bindRoutes?: boolean
+  production?: boolean
+}
 
 const plugin: Plugin<IOptions<any, any>> = {
   name: 'controllersRoutes',
   version: '0.0.1',
-  register(server: Server, options: IOptions<any, any> = {}) {
+  register: async (server: Server, options: IOptions<any, any> = {}) => {
     const {
+      title = 'unknown',
+      version = 'unknown',
       controllers = {},
       routes = [],
       context = {},
       bindRoutes = true,
+      production = true,
     } = options
     Object.freeze(context)
     const controllerInstances: any = {}
     forEach(controllers, (controller: any, key: string) => {
       controllerInstances[key] = new controller(server, context)
+    })
+
+    if(!production){
+      await server.register([
+        inert, vision,
+      ])
+    }
+
+    await server.register({
+      plugin: hapiSwagger,
+      options: {
+        info: {
+          title,
+          version,
+        },
+        documentationPage: !production,
+        swaggerUI: !production,
+      },
     })
 
     const handler = (route: any, options: any) => {
