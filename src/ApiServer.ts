@@ -10,6 +10,7 @@ import {readFile} from 'fs-extra'
 import {ITypedef} from 'graphql-tools'
 import Hapi, {Plugin, Server} from 'hapi'
 import {ServerRegisterPluginObject} from 'hapi'
+import hapiPino from 'hapi-pino'
 import hapiSwagger from 'hapi-swagger'
 import inert from 'inert'
 import {forEach} from 'lodash'
@@ -17,6 +18,8 @@ import Mongoose, {Schema} from 'mongoose'
 import vision from 'vision'
 // const
 const CLASS_NAME = 'ApiServer'
+const DEFAULT_PORT = 8080
+const DEFAULT_HOST = 'localhost'
 
 /**
  * ApiServer constructor & start Options
@@ -136,7 +139,7 @@ export default class ApiServer implements IAPIServer {
   async start(options: IServerOptions = {}) {
     const {
       key, cert, typeDefs, resolvers, mongooseSchemas,
-      port, host, mongoDBUrl, plugins, controllers, routes,
+      port = DEFAULT_PORT, host = DEFAULT_HOST, mongoDBUrl, plugins, controllers, routes,
     } = this._mergeOptions(options)
 
     // key & cert for https
@@ -199,6 +202,9 @@ export default class ApiServer implements IAPIServer {
         },
         documentationPage: !this.production,
         swaggerUI: !this.production,
+      }))
+      waitingPipe.push(this._register(hapiPino, {
+        prettyPrint: !this.production,
       }))
       waitingPipe.push(
         (async () => {

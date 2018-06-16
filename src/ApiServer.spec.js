@@ -9,9 +9,7 @@ describe('APIServer', () => {
       expect(server.start).to.be.a('function')
       server.start().then((_server) => {
         expect(_server).to.be.an('object')
-        // todo 이테스트 손봐야됨
-        // expect(_server.info.address).to.equal('127.0.0.1')
-        // todo 이테스트 손봐야됨
+        expect(_server.info.address).to.equal('127.0.0.1')
         expect(_server.info.port).to.equal(3000)
         server.stop().then(() => {
           done()
