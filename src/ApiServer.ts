@@ -41,7 +41,7 @@ export interface IServerOptions extends IArgvServerOptions {
  * ApiServer interface
  */
 export interface IAPIServer {
-  // origin hapi server
+  readonly production: boolean
   readonly cert: string
   readonly controllers: {[name: string]: any}
   readonly host: string
@@ -55,6 +55,7 @@ export interface IAPIServer {
   readonly server: Server
   readonly typeDefs: ITypedef[]
   readonly mongooseSchemas: {[name: string]: Schema}
+  readonly isLog: boolean
 
   register(plugin: Plugin<any>, options?: any): IAPIServer
   start(options?: IServerOptions): Promise<Server>
@@ -66,8 +67,7 @@ export interface IAPIServer {
  * Api server
  */
 export default class ApiServer implements IAPIServer {
-  readonly production: boolean =
-    !process.env.NODE_END || process.env.NODE_END === 'production'
+  readonly production: boolean = process.env.NODE_END === 'production'
 
   readonly cert: string
   readonly controllers: {[name: string]: any}
@@ -80,6 +80,7 @@ export default class ApiServer implements IAPIServer {
   readonly routes: IServerRoute[]
   readonly typeDefs: ITypedef[]
   readonly mongooseSchemas: {[name: string]: Schema}
+  readonly isLog: boolean
 
   private _logBeforeServerCreate: Array<{tag: string[], massage: string}>
 
@@ -92,7 +93,7 @@ export default class ApiServer implements IAPIServer {
   constructor(options: IServerOptions = {}) {
     const {
       mongoDBUrl, plugins, controllers, routes, mongooseSchemas,
-      resolvers, typeDefs, port, host, key, cert,
+      resolvers, typeDefs, port, host, key, cert, isLog,
     } = options
     this.cert = cert
     this.controllers = controllers
@@ -105,6 +106,7 @@ export default class ApiServer implements IAPIServer {
     this.resolvers = resolvers
     this.typeDefs = typeDefs
     this.mongooseSchemas = mongooseSchemas
+    this.isLog = isLog
   }
 
   // register a plugin before start server
@@ -138,7 +140,7 @@ export default class ApiServer implements IAPIServer {
   // start server with options
   async start(options: IServerOptions = {}) {
     const {
-      key, cert, typeDefs, resolvers, mongooseSchemas,
+      key, cert, typeDefs, resolvers, mongooseSchemas, isLog = true,
       port = DEFAULT_PORT, host = DEFAULT_HOST, mongoDBUrl, plugins, controllers, routes,
     } = this._mergeOptions(options)
 
@@ -167,18 +169,17 @@ export default class ApiServer implements IAPIServer {
     //////////////////////////////
     waitingPipe.push(this._registerAll(plugins))
 
-    ////////////////////////////
-    // register plugins for dev mode
-    ///////////////////////////
-    if(!this.production){
-      // for hapi-Swagger
-      waitingPipe.push(this._registerAll([{plugin: inert}, {plugin: vision}]))
-    }
-
     ///////////////////////////
     // register default plugins
     //////////////////////////
     waitingPipe.push(this._register(pm2ZeroDownTime))
+
+    if(isLog){
+      waitingPipe.push(this._register(hapiPino, {
+        prettyPrint: !this.production,
+      }))
+    }
+    console.log(isLog)
 
     ///////////////////////////
     // graphql
@@ -195,6 +196,11 @@ export default class ApiServer implements IAPIServer {
     // register controllersRoutes
     //////////////////////////
     if(routes && controllers){
+      // register plugins for dev mode
+      if(!this.production){
+        // for hapi-Swagger
+        waitingPipe.push(this._registerAll([{plugin: inert}, {plugin: vision}]))
+      }
       waitingPipe.push(this._register(hapiSwagger, {
         info: {
           title: name(),
@@ -202,9 +208,6 @@ export default class ApiServer implements IAPIServer {
         },
         documentationPage: !this.production,
         swaggerUI: !this.production,
-      }))
-      waitingPipe.push(this._register(hapiPino, {
-        prettyPrint: !this.production,
       }))
       waitingPipe.push(
         (async () => {
@@ -231,8 +234,6 @@ export default class ApiServer implements IAPIServer {
       this.log(['error', 'hapi', 'start'], 'server cannot run')
       throw error
     }
-
-    this.log(['info', 'hapi', 'start'], 'server start')
     return this.server
   }
 
@@ -309,6 +310,7 @@ export default class ApiServer implements IAPIServer {
       routes = [],
       typeDefs = [],
       resolvers = [],
+      isLog = this.isLog,
       // types,
     } = options
     return {
@@ -327,6 +329,7 @@ export default class ApiServer implements IAPIServer {
       port,
       routes: routes.concat(this.routes || []),
       typeDefs: typeDefs.concat(this.typeDefs || []),
+      isLog,
       resolvers: resolvers.concat(this.resolvers || []),
       // types: this.types ? [...this.types].concat(types || []) : types,
     }

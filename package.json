@@ -27,7 +27,7 @@
     "lint:eslint": "eslint --fix src/**/*.js src/**/*.ts",
     "test": "yarn run test:unit",
     "test:unit:watch": "yarn run test:unit --watch",
-    "test:unit": "mocha-webpack \"src/**/*.spec.js\" --webpack-config config/webpack.test.config.js --timeout 3000 --recursive --require build/chai.js",
+    "test:unit": "mocha-webpack \"src/**/*.spec.js\" --webpack-config config/webpack.test.config.js --timeout 3000 --recursive --require build/test.js",
     "cover": "nyc --reporter=lcov --reporter=html --reporter=text yarn run test:unit",
     "cover-ci": "nyc --reporter=lcov yarn run test:unit"
   },

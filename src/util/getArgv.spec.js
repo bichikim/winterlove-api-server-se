@@ -6,21 +6,24 @@ describe('getArgv' , () => {
     '-k', 'keyData',
     '-h', 'hostData',
     '-p', '8080',
-    '-r', 'protocolData',
+    '-d', 'mongoDBUrlData',
+    '-l', 'true',
   ]
   const LongArgv = [
     '--cert', 'certData',
     '--key', 'keyData',
     '--host', 'hostData',
     '--port', '8080',
-    '--protocol', 'protocolData',
+    '--mongoDBUrl', 'mongoDBUrlData',
+    '-log', 'true',
   ]
   const postDataErrorArgv = [
     '-c', 'certData',
     '-k', 'keyData',
     '-h', 'hostData',
     '-p', 'portWithString',
-    '-r', 'protocolData',
+    '-d', 'mongoDBUrlData',
+    '-l', 'true',
   ]
   afterEach(() => {
     expect(argv.cert).to.equal('certData')

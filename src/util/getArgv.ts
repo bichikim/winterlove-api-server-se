@@ -5,6 +5,7 @@ export interface IArgvServerOptions {
   host?: string
   key?: string
   mongoDBUrl?: string
+  isLog?: boolean
   port?: number
 }
 
@@ -20,6 +21,7 @@ export default function getArgv(_argv: any): IArgvServerOptions {
   const defaults = {
     port: 8080,
     host: 'localhost',
+    isLog: true,
   }
   const argv = parseArgs(_argv, {
     alias: {
@@ -29,6 +31,7 @@ export default function getArgv(_argv: any): IArgvServerOptions {
       h: 'host',
       k: 'key',
       c: 'cert',
+      l: 'isLog',
     },
   })
   // define option values
@@ -37,7 +40,8 @@ export default function getArgv(_argv: any): IArgvServerOptions {
   const key: string = argv.key || process.env.key
   const mongoDBUrl = argv.mongoDBUrl || process.env.mongoDBUrl
   const port: number = number(argv.port || process.env.port, defaults.port)
+  const isLog: boolean = Boolean(argv.isLog || process.env.isLog || defaults.isLog)
   return {
-    port, host, cert, key, mongoDBUrl,
+    port, host, cert, key, mongoDBUrl, isLog,
   }
 }
