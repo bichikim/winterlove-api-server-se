@@ -25,7 +25,7 @@ export default function getArgv(_argv: any): IArgvServerOptions {
   }
   const argv = parseArgs(_argv, {
     alias: {
-      d: 'mongoDB',
+      d: 'mongoDBUrl',
       r: 'protocol',
       p: 'port',
       h: 'host',
@@ -34,13 +34,19 @@ export default function getArgv(_argv: any): IArgvServerOptions {
       l: 'isLog',
     },
   })
+  // for skipping error
+  if(!process.envJs){
+    process.envJs = {}
+  }
   // define option values
-  const cert: string = argv.cert || process.env.cert
-  const host: string = argv.host || process.env.host || defaults.host
-  const key: string = argv.key || process.env.key
-  const mongoDBUrl = argv.mongoDBUrl || process.env.mongoDBUrl
-  const port: number = number(argv.port || process.env.port, defaults.port)
-  const isLog: boolean = Boolean(argv.isLog || process.env.isLog || defaults.isLog)
+  const cert: string = argv.cert || process.envJs.cert || process.env.cert
+  const host: string = argv.host || process.envJs.host || process.env.host || defaults.host
+  const key: string = argv.key || process.envJs.key || process.env.key
+  const mongoDBUrl = argv.mongoDBUrl || process.envJs.mongoDBUrl || process.env.mongoDBUrl
+  const port: number = number(
+    argv.port || process.envJs.port || process.env.port, defaults.port)
+  const isLog: boolean = Boolean(
+    argv.isLog || process.envJs.isLog || process.env.isLog || defaults.isLog)
   return {
     port, host, cert, key, mongoDBUrl, isLog,
   }

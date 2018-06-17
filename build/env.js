@@ -22,7 +22,7 @@ module.exports = (webpackConfig) => {
   return webpackMerge(webpackConfig, {
     plugins: [
       new webpack.DefinePlugin({
-        'process.env': JSON.stringify(config),
+        'process.envJs': JSON.stringify(config),
       }),
     ],
   })

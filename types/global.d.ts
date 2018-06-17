@@ -5,12 +5,10 @@
 declare namespace NodeJS {
   // noinspection JSUnusedGlobalSymbols
   export interface Process {
-
+    envJs: {[name: string]: any}
   }
 
   // noinspection JSUnusedGlobalSymbols
   export interface Global {
-    __src: string
-    __root: string
   }
 }

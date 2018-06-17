@@ -55,7 +55,7 @@ export interface IAPIServer {
   readonly isLog: boolean
 
   register(plugin: Plugin<any>, options?: any): IAPIServer
-  start(options?: IServerOptions): Promise<Server>
+  start(options?: IServerOptions): Promise<{server: Server, options: IServerOptions}>
   stop(options?: {timeout: number}): void
   log(tag: string[], massage: string): void
 }
@@ -135,11 +135,12 @@ export default class ApiServer implements IAPIServer {
   }
 
   // start server with options
-  async start(options: IServerOptions = {}) {
+  async start(_options: IServerOptions = {}): Promise<{server: Server, options: IServerOptions}> {
+    const options = this._mergeOptions(_options)
     const {
       key, cert, typeDefs, resolvers, mongooseSchemas, isLog = true,
       port = DEFAULT_PORT, host = DEFAULT_HOST, mongoDBUrl, plugins, controllers, routes,
-    } = this._mergeOptions(options)
+    } = options
 
     // key & cert for https
     const tls = await this._getTsl({key, cert})
@@ -221,7 +222,7 @@ export default class ApiServer implements IAPIServer {
       this.log(['error', 'hapi', 'start'], 'server cannot run')
       throw error
     }
-    return this.server
+    return {server: this.server, options}
   }
 
   // stop server

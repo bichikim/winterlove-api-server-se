@@ -15,7 +15,7 @@ describe('getArgv' , () => {
     '--host', 'hostData',
     '--port', '8080',
     '--mongoDBUrl', 'mongoDBUrlData',
-    '-log', 'true',
+    '--log', 'true',
   ]
   const postDataErrorArgv = [
     '-c', 'certData',
@@ -29,11 +29,13 @@ describe('getArgv' , () => {
     expect(argv.cert).to.equal('certData')
     expect(argv.key).to.equal('keyData')
     expect(argv.host).to.equal('hostData')
+    expect(argv.mongoDBUrl).to.equal('mongoDBUrlData')
+    expect(argv.isLog).to.equal(true)
     expect(argv.port).to.equal(8080)
-    argv = null
   })
   it('should get Argv from console short commands', () => {
     argv = getArgv(ShortArgv)
+    console.log(argv)
   })
   it('should get Argv from console long commands', () => {
     argv = getArgv(LongArgv)
