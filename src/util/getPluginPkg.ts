@@ -1,5 +1,5 @@
 let unknownNameNumber = 0
-export default function getPluginPkg(plugin: any) {
+export default function getPluginPkg(plugin: any): {name: string, version: string} {
   const {plugin: {pkg = null} = {}} = plugin
   if(pkg){
     return pkg

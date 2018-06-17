@@ -34,6 +34,12 @@ describe('getPluginPkg', () => {
       pkg = getPluginPkg(noPkgType)
     })
   })
-
+  describe('running get getPluginPkg', () => {
+    it('should read a pkg with no info', () => {
+      pkg = getPluginPkg({})
+      expect(pkg.name).to.include('unknown')
+      expect(pkg.version).to.equal('0.0.0')
+    })
+  })
 
 })
