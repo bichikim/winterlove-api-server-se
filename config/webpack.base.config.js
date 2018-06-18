@@ -28,15 +28,6 @@ module.exports = {
   module: {
     rules: [
       {
-        enforce: 'pre',
-        test: /\.(js|ts|vue)/,
-        loader: 'eslint-loader',
-        exclude: /node_modules/,
-        options: {
-          formatter,
-        },
-      },
-      {
         test: /\.graphql?$/,
         exclude: /node_modules/,
         loader: 'webpack-graphql-loader',

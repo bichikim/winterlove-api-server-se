@@ -1,0 +1,15 @@
+{
+  "include": [
+    "src/**/*.js",
+    "src/**/*.ts"
+  ],
+  "reporter": [
+    "lcov",
+    "html",
+    "text-summary"
+  ],
+  "cache": true,
+  "report-dir": "./.coverage",
+  "instrument": false,
+  "sourceMap": false
+}

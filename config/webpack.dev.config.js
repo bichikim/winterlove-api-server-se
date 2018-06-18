@@ -1,4 +1,5 @@
 const WebpackBaseConfig = require('./webpack.base.config')
+const formatter = require('eslint-friendly-formatter')
 const webpackMerge = require('webpack-merge')
 module.exports = webpackMerge(WebpackBaseConfig, {
   /**
@@ -11,5 +12,18 @@ module.exports = webpackMerge(WebpackBaseConfig, {
   watchOptions: {
     aggregateTimeout: 300,
     poll: 1000,
+  },
+  module: {
+    rules: [
+      {
+        enforce: 'pre',
+        test: /\.(js|ts|vue)/,
+        loader: 'eslint-loader',
+        exclude: /node_modules/,
+        options: {
+          formatter,
+        },
+      },
+    ],
   },
 })
