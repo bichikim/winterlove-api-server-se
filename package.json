@@ -29,7 +29,8 @@
     "test:unit:watch": "yarn run test:unit --watch",
     "test:unit": "mocha-webpack \"src/**/*.spec.js\" --webpack-config config/webpack.test.config.js --timeout 3000 --recursive --require build/test.js",
     "cover": "nyc yarn run test:unit",
-    "cover-ci": "nyc --reporter=lcov yarn run test:unit"
+    "cover:watch": "nodemon --exec nyc yarn run test:unit",
+    "cover:ci": "nyc --reporter=lcov yarn run test:unit"
   },
   "repository": {
     "type": "git",

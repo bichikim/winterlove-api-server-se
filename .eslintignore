@@ -1,5 +1,7 @@
 coverage/
 public/*.js
+.templates
+.keep
 dist/*.js
 _removed/*.js
 *.json
