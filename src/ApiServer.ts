@@ -325,7 +325,7 @@ export default class ApiServer implements IAPIServer {
     }))
   }
 
-  // register one plugins it will return exposed value & log when registration has an error
+  // register a plugin. it will return exposed value & log when registration has an error
   private async _register(plugin: Plugin<any>, options?: any) {
     const {name = 'unknown'} = getPluginPkg(plugin)
     try{
