@@ -35,7 +35,6 @@ describe('getArgv' , () => {
   })
   it('should get Argv from console short commands', () => {
     argv = getArgv(ShortArgv)
-    console.log(argv)
   })
   it('should get Argv from console long commands', () => {
     argv = getArgv(LongArgv)
