@@ -20,8 +20,8 @@ const DEFAULT_HOST = 'localhost'
 
 /**
  * ApiServer constructor & start Options
- * Do not change update or change to add new Plugins
- * only default plugins allow to code in this Api server
+ * Do NOT change update or change to add new Plugins
+ * we only allow you to add default plugins in this Api server
  * otherwise use ApiServer.register(...)
  */
 export interface IServerOptions extends IArgvServerOptions {
@@ -236,31 +236,23 @@ export default class ApiServer implements IAPIServer {
   // solve getting tsl
   private async _getTsl(options: {key: string, cert: string}): Promise<{key: any, cert: any}> {
     const {key: _key, cert: _cert} = options
-    if(!_key || !_cert){
-      return
-    }
-
+    if(!_key || !_cert){return}
     let key, cert
     try{
       key = await readFile(_key)
     }catch(error){
       this.log(
         ['error', 'hapi', 'read file', 'tsl'], `cannot find key at ${_key}`)
-      console.error(error)
-      return
+      throw error
     }
     try{
       cert = await readFile(_cert)
     }catch(error){
       this.log(
         ['error', 'hapi', 'read file', 'tsl'], `cannot find cert at ${_cert}`)
-      console.error(error)
-      return
+      throw error
     }
-
-    return {
-      key, cert,
-    }
+    return {key, cert}
   }
 
   // server log all logs
@@ -281,34 +273,20 @@ export default class ApiServer implements IAPIServer {
   // merge options with this options
   private _mergeOptions(options: IServerOptions) {
     const {
-      cert = this.cert,
-      controllers,
-      host = this.host,
-      key = this.key,
-      mongoDBUrl = this.mongoDBUrl,
-      mongooseSchemas = {},
-      plugins = [],
-      port = this.port,
-      routes = [],
-      typeDefs = [],
-      resolvers = [],
-      log = this.logOptions,
+      cert = this.cert, controllers, host = this.host, key = this.key,
+      mongoDBUrl = this.mongoDBUrl, mongooseSchemas = {}, plugins = [], port = this.port,
+      routes = [], typeDefs = [], resolvers = [], log = this.logOptions,
     } = options
     return {
-      cert,
+      cert, host, key, mongoDBUrl, port, log,
       controllers: this.controllers ?
         Object.assign({}, this.controllers, controllers || {}) : controllers,
-      host,
-      key,
-      mongoDBUrl,
       mongooseSchemas: this.mongooseSchemas ?
         Object.assign({}, this.mongooseSchemas, mongooseSchemas || {})
         : mongooseSchemas,
       plugins: plugins.concat(this.plugins || []),
-      port,
       routes: routes.concat(this.routes || []),
       typeDefs: typeDefs.concat(this.typeDefs || []),
-      log,
       resolvers: resolvers.concat(this.resolvers || []),
     }
   }
