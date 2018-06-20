@@ -16,17 +16,18 @@ interface IFileOptions {
 }
 
 export interface IOptions {
+  interval?: number
   file?: IFileOptions
   screen?: boolean
   loggly?: ILogglyOptions
 }
-
+const DEFAULT_INTERVAL = 1000
 const plugin: Plugin<IOptions> = {
   name: 'log-good',
   version: '0.0.1',
   register: async (server: Server, options: IOptions = {}) => {
     const {
-      file, screen = false, loggly,
+      file, screen = false, loggly, interval = DEFAULT_INTERVAL,
     } = options
     // no options no log
     if(!file && !screen && !loggly){return}
@@ -40,7 +41,7 @@ const plugin: Plugin<IOptions> = {
             args: [{log: '*', request: '*', error: '*', response: '*'}],
           },
           {
-            module: 'good-file',
+            module: 'good-squeeze',
             name: 'SafeJson',
           },
           {
@@ -58,6 +59,10 @@ const plugin: Plugin<IOptions> = {
             name: 'Squeeze',
             args: [{log: '*', request: '*', error: '*', response: '*'}],
           },
+          {
+            module: 'good-console',
+          },
+          'stdout',
         ],
       })
     }
@@ -75,7 +80,7 @@ const plugin: Plugin<IOptions> = {
     }
     await server.register({
       plugin: good,
-      options: {reporters},
+      options: {ops: {interval}, reporters},
     })
   },
 }

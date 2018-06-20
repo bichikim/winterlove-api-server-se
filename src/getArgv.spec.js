@@ -2,6 +2,7 @@ import getArgv from './getArgv'
 describe('getArgv' , () => {
   let argv
   describe('in console command way', () => {
+    process.envJs = {}
     const ShortArgv = [
       '-c', 'certData',
       '-k', 'keyData',
@@ -32,7 +33,6 @@ describe('getArgv' , () => {
     })
     it('should get Argv from console short commands', () => {
       argv = getArgv(ShortArgv)
-      console.log(argv)
     })
     it('should get Argv from console long commands', () => {
       argv = getArgv(LongArgv)

@@ -10,7 +10,6 @@ const ARGV_SKIP = 2
 
 // collecting configs from process.argv and process.env and process.envJS (from build)
 const config = getArgv(process.argv.slice(ARGV_SKIP))
-
 // init server
 const server = new ApiServer({
   ...config,
@@ -41,5 +40,4 @@ server.start().then(({server, options}) => {
     `hapi version: ${version}\n` +
     `${pkg.name()} version: ${pkg.version()}`,
   )
-
 })

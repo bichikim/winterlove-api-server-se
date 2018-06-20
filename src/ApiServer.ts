@@ -214,6 +214,7 @@ export default class ApiServer implements IAPIServer {
       this.log(['error', 'hapi', 'start'], 'server cannot run')
       throw error
     }
+    this.log(['info', 'hapi', 'start'], 'server is started')
     return {server: this.server, options}
   }
 
@@ -225,7 +226,7 @@ export default class ApiServer implements IAPIServer {
       this.log(['error', 'hapi', 'stop'], 'cannot stop hapi')
       throw error
     }
-    this.log(['info', 'hapi', 'stop'], 'server stop')
+    this.log(['info', 'hapi', 'stop'], 'server is stopped')
     this._server = null
   }
 
