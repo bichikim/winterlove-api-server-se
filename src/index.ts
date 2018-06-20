@@ -1,10 +1,10 @@
 import ApiServer from '@/ApiServer'
 import controllers from '@/controllers'
+import getArgv from '@/getArgv'
 import mongooseSchemas from '@/mongoose-schemas'
 import resolvers from '@/resolvers'
 import routes from '@/routes'
 import typeDefs from '@/type-defs'
-import getArgv from '@/util/getArgv'
 import * as pkg from '@/util/pkg'
 const ARGV_SKIP = 2
 
@@ -24,10 +24,15 @@ const server = new ApiServer({
 // start server
 server.start().then(({server, options}) => {
   const {version} = server
+  const {key, cert, port, log, mongoDBUrl} = options
   console.log(
-    `key: ${options.key}\n` +
-    `cert: ${options.cert}\n` +
-    `mongoDB url: ${options.mongoDBUrl}\n` +
+    `key: ${key}\n` +
+    `cert: ${cert}\n` +
+    `port: ${port}\n` +
+    `log.screen: ${log.screen}\n` +
+    `log.file: ${log.file}\n` +
+    `log.loggly: ${log.loggly}\n` +
+    `mongoDB url: ${mongoDBUrl}\n` +
     `mode: ${process.env.NODE_ENV}\n` +
     `hapi version: ${version}\n` +
     `${pkg.name()} version: ${pkg.version()}`,

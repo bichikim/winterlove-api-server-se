@@ -1,3 +1,5 @@
+/*eslint complexity: ["error", 23]*/
+import {IOptions as ILogOptions} from '@/plugins/log-good'
 import parseArgs from 'minimist'
 
 export interface IArgvServerOptions {
@@ -5,7 +7,7 @@ export interface IArgvServerOptions {
   host?: string
   key?: string
   mongoDBUrl?: string
-  isLog?: boolean
+  log?: ILogOptions
   port?: number
 }
 
@@ -21,7 +23,9 @@ export default function getArgv(_argv: any): IArgvServerOptions {
   const defaults = {
     port: 8080,
     host: 'localhost',
-    isLog: true,
+    isConsoleLog: false,
+    isLocalLog: false,
+    isRemoteLog: false,
   }
   const argv = parseArgs(_argv, {
     alias: {
@@ -31,13 +35,8 @@ export default function getArgv(_argv: any): IArgvServerOptions {
       h: 'host',
       k: 'key',
       c: 'cert',
-      l: 'isLog',
     },
   })
-  // for skipping error
-  if(!process.envJs){
-    process.envJs = {}
-  }
   // define option values
   const cert: string = argv.cert || process.envJs.cert || process.env.cert
   const host: string = argv.host || process.envJs.host || process.env.host || defaults.host
@@ -45,9 +44,9 @@ export default function getArgv(_argv: any): IArgvServerOptions {
   const mongoDBUrl = argv.mongoDBUrl || process.envJs.mongoDBUrl || process.env.mongoDBUrl
   const port: number = number(
     argv.port || process.envJs.port || process.env.port, defaults.port)
-  const isLog: boolean = Boolean(
-    argv.isLog || process.envJs.isLog || process.env.isLog || defaults.isLog)
+  const log = process.envJs.log || process.env.log
+
   return {
-    port, host, cert, key, mongoDBUrl, isLog,
+    port, host, cert, key, mongoDBUrl, log,
   }
 }

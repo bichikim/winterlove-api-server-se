@@ -19,7 +19,7 @@ export interface IOptions<C, M> {
 }
 
 const plugin: Plugin<IOptions<any, any>> = {
-  name: 'controllersRoutes',
+  name: 'controllers-routes',
   version: '0.0.1',
   register: async (server: Server, options: IOptions<any, any> = {}) => {
     const {

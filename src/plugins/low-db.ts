@@ -7,7 +7,7 @@ interface IOptions {
   init?: {[name: string]: any}
 }
 const plugin: Plugin<IOptions> = {
-  name: 'lowDB',
+  name: 'low-db',
   version: '0.0.1',
   register: async (server: Server, options: IOptions = {}) => {
     const {

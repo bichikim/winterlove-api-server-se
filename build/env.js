@@ -17,12 +17,15 @@ try{
   config = {}
 }
 const {mongoDBUrl, cert, host, key, port} = config
-config = {mongoDBUrl, cert, host, key, port}
 module.exports = (webpackConfig) => {
   return webpackMerge(webpackConfig, {
     plugins: [
       new webpack.DefinePlugin({
-        'process.envJs': JSON.stringify(config),
+        'process.envJs.cert': JSON.stringify(cert),
+        'process.envJs.mongoDBUrl': JSON.stringify(mongoDBUrl),
+        'process.envJs.host': JSON.stringify(host),
+        'process.envJs.port': JSON.stringify(port),
+        'process.envJs.key': JSON.stringify(key),
       }),
     ],
   })

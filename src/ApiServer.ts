@@ -1,16 +1,16 @@
+import {IArgvServerOptions} from '@/getArgv'
 import controllersRoutes from '@/plugins/controllers-routes/'
 import graphqlHapi, {TResolverFactory} from '@/plugins/graphql-hapi'
+import logGood, {IOptions as ILogOptions} from '@/plugins/log-good'
 import lowDB from '@/plugins/low-db'
 import pm2ZeroDownTime from '@/plugins/pm2-zero-down-time'
 import {IServerRoute} from '@/types'
-import {IArgvServerOptions} from '@/util/getArgv'
 import getPluginPkg from '@/util/getPluginPkg'
 import {name, version} from '@/util/pkg'
 import {readFile} from 'fs-extra'
 import {ITypedef} from 'graphql-tools'
 import Hapi, {Plugin, Server} from 'hapi'
 import {ServerRegisterPluginObject} from 'hapi'
-import hapiPino from 'hapi-pino'
 import {forEach} from 'lodash'
 import Mongoose, {Schema} from 'mongoose'
 // const
@@ -22,6 +22,7 @@ const DEFAULT_HOST = 'localhost'
  * ApiServer constructor & start Options
  */
 export interface IServerOptions extends IArgvServerOptions {
+  log?: ILogOptions
   // for graphql
   resolvers?: TResolverFactory[]
   typeDefs?: ITypedef[]
@@ -46,13 +47,12 @@ export interface IAPIServer {
   readonly mongoDBUrl: string
   readonly plugins: Array<ServerRegisterPluginObject<any>>
   readonly port: number
-  readonly protocol: string
   readonly resolvers: TResolverFactory[]
   readonly routes: IServerRoute[]
   readonly server: Server
   readonly typeDefs: ITypedef[]
   readonly mongooseSchemas: {[name: string]: Schema}
-  readonly isLog: boolean
+  readonly logOptions: ILogOptions
 
   register(plugin: Plugin<any>, options?: any): IAPIServer
   start(options?: IServerOptions): Promise<{server: Server, options: IServerOptions}>
@@ -72,12 +72,11 @@ export default class ApiServer implements IAPIServer {
   readonly key: string
   readonly mongoDBUrl: string
   readonly port: number
-  readonly protocol: string
   readonly resolvers: TResolverFactory[]
   readonly routes: IServerRoute[]
   readonly typeDefs: ITypedef[]
   readonly mongooseSchemas: {[name: string]: Schema}
-  readonly isLog: boolean
+  readonly logOptions: ILogOptions
 
   private _logBeforeServerCreate: Array<{tag: string[], massage: string}>
 
@@ -90,7 +89,7 @@ export default class ApiServer implements IAPIServer {
   constructor(options: IServerOptions = {}) {
     const {
       mongoDBUrl, plugins, controllers, routes, mongooseSchemas,
-      resolvers, typeDefs, port, host, key, cert, isLog,
+      resolvers, typeDefs, port, host, key, cert, log,
     } = options
     this.cert = cert
     this.controllers = controllers
@@ -103,7 +102,7 @@ export default class ApiServer implements IAPIServer {
     this.resolvers = resolvers
     this.typeDefs = typeDefs
     this.mongooseSchemas = mongooseSchemas
-    this.isLog = isLog
+    this.logOptions = log
   }
 
   // register a plugin before start server
@@ -138,10 +137,9 @@ export default class ApiServer implements IAPIServer {
   async start(_options: IServerOptions = {}): Promise<{server: Server, options: IServerOptions}> {
     const options = this._mergeOptions(_options)
     const {
-      key, cert, typeDefs, resolvers, mongooseSchemas, isLog = true,
+      key, cert, typeDefs, resolvers, mongooseSchemas, log,
       port = DEFAULT_PORT, host = DEFAULT_HOST, mongoDBUrl, plugins, controllers, routes,
     } = options
-
     // key & cert for https
     const tls = await this._getTsl({key, cert})
 
@@ -170,12 +168,12 @@ export default class ApiServer implements IAPIServer {
     ///////////////////////////
     // register default plugins
     //////////////////////////
-    waitingPipe.push(this._register(pm2ZeroDownTime))
+    waitingPipe.push(this._registerAll([
+      {plugin: pm2ZeroDownTime},
+    ]))
 
-    if(isLog){
-      waitingPipe.push(this._register(hapiPino, {
-        prettyPrint: !this.production,
-      }))
+    if(log){
+      waitingPipe.push(this._register(logGood, log))
     }
 
     ///////////////////////////
@@ -199,14 +197,8 @@ export default class ApiServer implements IAPIServer {
           const {db} = await this._register(lowDB)
           // controllers have mongoose.models
           await this._register(controllersRoutes, {
-            title: name(),
-            version: version(),
-            routes,
-            controllers,
-            context: {
-              lowDB: db,
-            },
-            production: this.production,
+            title: name(), version: version(), routes, controllers,
+            context: {lowDB: db}, production: this.production,
           })
         })(),
       )
@@ -296,7 +288,7 @@ export default class ApiServer implements IAPIServer {
       routes = [],
       typeDefs = [],
       resolvers = [],
-      isLog = this.isLog,
+      log = this.logOptions,
     } = options
     return {
       cert,
@@ -312,7 +304,7 @@ export default class ApiServer implements IAPIServer {
       port,
       routes: routes.concat(this.routes || []),
       typeDefs: typeDefs.concat(this.typeDefs || []),
-      isLog,
+      log,
       resolvers: resolvers.concat(this.resolvers || []),
     }
   }
@@ -325,13 +317,14 @@ export default class ApiServer implements IAPIServer {
     }))
   }
 
-  // register a plugin. it will return exposed value & log when registration has an error
+  // register one plugins it will return exposed value & log when registration has an error
   private async _register(plugin: Plugin<any>, options?: any) {
     const {name = 'unknown'} = getPluginPkg(plugin)
     try{
       await this.server.register({plugin, options})
+      this.log(['info', 'hapi'], `registered plugin ${name} into server`)
     }catch(error){
-      this.log(['error', name, 'register'], 'server cannot resister')
+      this.log(['error', 'hapi'], `cannot register plugin ${name} into server`)
       throw error
     }
     return (this.server.plugins as any)[name]
