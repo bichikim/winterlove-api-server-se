@@ -21,7 +21,7 @@ const DEFAULT_HOST = 'localhost'
 /**
  * ApiServer constructor & start Options
  * Do not change update or change to add new Plugins
- * only default plugins allow to add in this Api server
+ * only default plugins allow to code in this Api server
  * otherwise use ApiServer.register(...)
  */
 export interface IServerOptions extends IArgvServerOptions {
