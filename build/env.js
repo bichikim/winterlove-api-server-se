@@ -16,7 +16,7 @@ try{
 }catch(e){
   config = {}
 }
-const {mongoDBUrl, cert, host, key, port} = config
+const {mongoDBUrl, cert, host, key, port, log} = config
 module.exports = (webpackConfig) => {
   return webpackMerge(webpackConfig, {
     plugins: [
@@ -26,6 +26,7 @@ module.exports = (webpackConfig) => {
         'process.envJs.host': JSON.stringify(host),
         'process.envJs.port': JSON.stringify(port),
         'process.envJs.key': JSON.stringify(key),
+        'process.envJs.log': JSON.stringify(log),
       }),
     ],
   })

@@ -30,7 +30,6 @@ export default function getArgv(_argv: any): IArgvServerOptions {
   const argv = parseArgs(_argv, {
     alias: {
       d: 'mongoDBUrl',
-      r: 'protocol',
       p: 'port',
       h: 'host',
       k: 'key',

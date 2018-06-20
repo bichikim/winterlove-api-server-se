@@ -25,16 +25,21 @@ const server = new ApiServer({
 server.start().then(({server, options}) => {
   const {version} = server
   const {key, cert, port, log, mongoDBUrl} = options
+  if(log){
+    console.log(
+      `log.screen: ${log.screen}\n` +
+      `log.file: ${log.file}\n` +
+      `log.loggly: ${log.loggly}`,
+    )
+  }
   console.log(
     `key: ${key}\n` +
     `cert: ${cert}\n` +
     `port: ${port}\n` +
-    `log.screen: ${log.screen}\n` +
-    `log.file: ${log.file}\n` +
-    `log.loggly: ${log.loggly}\n` +
     `mongoDB url: ${mongoDBUrl}\n` +
     `mode: ${process.env.NODE_ENV}\n` +
     `hapi version: ${version}\n` +
     `${pkg.name()} version: ${pkg.version()}`,
   )
+
 })

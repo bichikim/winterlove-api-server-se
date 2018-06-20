@@ -12,6 +12,7 @@ module.exports = webpackMerge(WebpackBaseConfig, {
   watchOptions: {
     aggregateTimeout: 300,
     poll: 1000,
+    ignored: ['.env.js', 'config', 'build'],
   },
   module: {
     rules: [
