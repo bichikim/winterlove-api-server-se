@@ -242,7 +242,7 @@ export default class ApiServer implements IAPIServer {
       key = await readFile(_key)
     }catch(error){
       this.log(
-        ['error', 'server', 'read file', 'key'], `cannot find key at ${_key}`)
+        ['error', 'hapi', 'read file', 'tsl'], `cannot find key at ${_key}`)
       console.error(error)
       return
     }
@@ -250,7 +250,7 @@ export default class ApiServer implements IAPIServer {
       cert = await readFile(_cert)
     }catch(error){
       this.log(
-        ['error', 'server', 'read file', 'cert'], `cannot find cert at ${_cert}`)
+        ['error', 'hapi', 'read file', 'tsl'], `cannot find cert at ${_cert}`)
       console.error(error)
       return
     }
@@ -323,9 +323,12 @@ export default class ApiServer implements IAPIServer {
     const {name = 'unknown'} = getPluginPkg(plugin)
     try{
       await this.server.register({plugin, options})
-      this.log(['info', 'hapi'], `registered plugin ${name} into server`)
+      this.log(['info', 'hapi', 'plugin', 'register'], `registered plugin ${name} into server`)
     }catch(error){
-      this.log(['error', 'hapi'], `cannot register plugin ${name} into server`)
+      this.log(
+        ['error', 'hapi', 'plugin', 'register'],
+        `cannot register plugin ${name} into server`,
+      )
       throw error
     }
     return (this.server.plugins as any)[name]
