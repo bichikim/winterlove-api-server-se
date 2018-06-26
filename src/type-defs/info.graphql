@@ -1,0 +1,7 @@
+type Query {
+  info(id: String!): Info
+}
+type Info {
+  _id: ID!
+  data: String!
+}

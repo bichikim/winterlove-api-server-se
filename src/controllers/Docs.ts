@@ -11,6 +11,7 @@ export default class Docs extends Controller {
   }
   async save(request: Request) {
     const {title, description, ok = false} = request.payload as any
+    console.log(title, description, ok)
     if(!title || !description){
       return {status: 'error'}
     }

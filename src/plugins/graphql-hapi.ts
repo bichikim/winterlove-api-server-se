@@ -1,6 +1,12 @@
 import {graphiqlHapi, graphqlHapi} from 'apollo-server-hapi'
 import {GraphQLSchema} from 'graphql'
-import {IResolvers, ITypedef, makeExecutableSchema} from 'graphql-tools'
+import {
+  addMockFunctionsToSchema,
+  IResolvers,
+  ITypedef,
+  makeExecutableSchema,
+  mergeSchemas,
+} from 'graphql-tools'
 import {Plugin, Server} from 'hapi'
 import Mongoose, {Model} from 'mongoose'
 
@@ -35,7 +41,7 @@ const plugin: Plugin<IOptions> = {
     let resolvers: IResolvers[], schema: GraphQLSchema
     try{
       resolvers = executeResolverFactories(resolverFactories, context)
-      schema = makeExecutableSchema({typeDefs, resolvers})
+      schema = mergeSchemas({schemas: makeExecutableSchemas(typeDefs), resolvers})
     }catch(error){
       throw error
     }
@@ -90,6 +96,16 @@ function executeResolverFactories(
     _resolvers.push(resolver)
   })
   return _resolvers
+}
+
+function makeExecutableSchemas(typeDefs: any[]) {
+  const mockFunctionedExecutableSchema: any[] = []
+  typeDefs.forEach((value: any) => {
+    const executableSchema = makeExecutableSchema({typeDefs: value})
+    addMockFunctionsToSchema({schema: executableSchema})
+    mockFunctionedExecutableSchema.push(executableSchema)
+  })
+  return mockFunctionedExecutableSchema
 }
 
 export default plugin
