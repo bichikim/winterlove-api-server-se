@@ -1,16 +1,24 @@
 import {graphiqlHapi, graphqlHapi} from 'apollo-server-hapi'
-import {IResolvers, makeExecutableSchema} from 'graphql-tools'
+import {GraphQLSchema} from 'graphql'
+import {
+  addMockFunctionsToSchema,
+  IResolvers,
+  ITypedef,
+  makeExecutableSchema,
+  mergeSchemas,
+} from 'graphql-tools'
 import {Plugin, Server} from 'hapi'
 import Mongoose, {Model} from 'mongoose'
 
-export type TResolverFactory = (models: {[name: string]: Model<any>}) => IResolvers
+export type TResolverFactory = (models: {[name: string]: Model<any>}) => IResolvers | IResolvers
 
 interface IOptions {
-  typeDefs: any[] | any
+  typeDefs: ITypedef[]
   resolverFactories: TResolverFactory[]
-  cors?: boolean
+  context: {[name: string]: any}
   path?: string
   graphiql?: boolean
+  route: any
 }
 
 const PLUGIN_NAME = 'graphql-hapi'
@@ -19,25 +27,41 @@ const plugin: Plugin<IOptions> = {
   version: '0.0.1',
   register: async (server: Server, options: IOptions) => {
     const {
-      typeDefs, resolverFactories, path = 'graphql', cors = true,
+      typeDefs, resolverFactories = [], path = 'graphql', context: _context,
       graphiql = process.env.NODE_ENV === 'development',
+      route = {},
     } = options
-    const {models} = Mongoose
-    const resolvers = executeResolverFactories(resolverFactories, models)
-    const schema = makeExecutableSchema({
-      typeDefs,
-      resolvers,
-    })
+    const context = {
+      ..._context,
+      get models() {
+        return Mongoose.models
+      },
+    }
+    Object.freeze(context)
+    let resolvers: IResolvers[], schema: GraphQLSchema
+    try{
+      resolvers = executeResolverFactories(resolverFactories, context)
+      schema = mergeSchemas({schemas: makeExecutableSchemas(typeDefs), resolvers})
+    }catch(error){
+      throw error
+    }
+
     try{
       await server.register({
         plugin: graphqlHapi,
         options: {
           path,
           graphqlOptions: {
+            context,
             schema,
           },
           route: {
-            cors,
+            // for hapi swagger
+            description: 'graphql',
+            notes: 'graphql endpoint',
+            tags: ['graphql'],
+            // override route
+            ...route,
           },
         },
       })
@@ -45,20 +69,43 @@ const plugin: Plugin<IOptions> = {
       server.log(['error', PLUGIN_NAME, 'register'], 'error register graphgl-hapi')
     }
     if(graphiql){
-      await server.register(graphiqlHapi)
+      await server.register({
+        plugin: graphiqlHapi,
+        options: {
+          path: '/graphiql',
+          graphiqlOptions: {
+            endpointURL: '/graphql',
+          },
+        },
+      })
     }
   },
 }
 
 function executeResolverFactories(
   resolvers: TResolverFactory[],
-  models: {[name: string]: Model<any>},
+  context: {models: {[name: string]: Model<any>}, [name: string]: any},
 ) {
   const _resolvers: IResolvers[] = []
   resolvers.forEach((resolver) => {
-    _resolvers.push(resolver(models))
+    // TResolverFactory can be both function or IResolvers
+    if(typeof resolver === 'function'){
+      _resolvers.push(resolver(context))
+      return
+    }
+    _resolvers.push(resolver)
   })
   return _resolvers
+}
+
+function makeExecutableSchemas(typeDefs: any[]) {
+  const mockFunctionedExecutableSchema: any[] = []
+  typeDefs.forEach((value: any) => {
+    const executableSchema = makeExecutableSchema({typeDefs: value})
+    addMockFunctionsToSchema({schema: executableSchema})
+    mockFunctionedExecutableSchema.push(executableSchema)
+  })
+  return mockFunctionedExecutableSchema
 }
 
 export default plugin

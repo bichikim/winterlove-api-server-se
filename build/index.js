@@ -1,7 +1,9 @@
 process.env.NODE_ENV = 'production'
 const webpack = require('webpack')
+const env = require('./env')
 const webpackConfig = require('../config/webpack.build.config')
-webpack(webpackConfig, function(error, stats) {
+
+webpack(env(webpackConfig), function(error, stats) {
   if(error){
     throw error
   }

@@ -27,7 +27,8 @@
     "types/**/*.d.ts"
   ],
   "exclude": [
-    "templates",
+    ".keep",
+    ".templates",
     "node_modules"
   ],
   "compileOnSave": false

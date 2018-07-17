@@ -8,7 +8,7 @@ interface IOptions {
  * @link https://github.com/roylines/hapi-graceful-pm2
  */
 const plugin: Plugin<IOptions> = {
-  name: 'pm2ZeroDownTime',
+  name: 'pm2-zero-down-time',
   version: '0.0.1',
   register(server, options?: IOptions) {
     process.on('SIGINT', () => {

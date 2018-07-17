@@ -1,20 +1,43 @@
 import ApiServer from '@/ApiServer'
 import controllers from '@/controllers'
+import getArgv from '@/getArgv'
+import mongooseSchemas from '@/mongoose-schemas'
+import resolvers from '@/resolvers'
 import routes from '@/routes'
+import typeDefs from '@/type-defs'
 import * as pkg from '@/util/pkg'
-import {Server} from 'hapi'
+const ARGV_SKIP = 2
 
+// collecting configs from process.argv and process.env and process.envJS (from build)
+const config = getArgv(process.argv.slice(ARGV_SKIP))
+// init server
 const server = new ApiServer({
+  ...config,
+  mongooseSchemas,
+  resolvers,
+  typeDefs,
   controllers,
   routes,
 })
 
-server.start().then((server: Server) => {
-  const {version, info: {protocol, address, port} = {} as any} = server
+// start server
+server.start().then(({server, options}) => {
+  const {version} = server
+  const {key, cert, port, log, mongoDBUrl} = options
+  if(log){
+    console.log(
+      `log.screen: ${log.screen}\n` +
+      `log.file: ${log.file}\n` +
+      `log.loggly: ${log.loggly}`,
+    )
+  }
   console.log(
-    `Server is running for ${protocol}://${address}:${port}\n` +
-      `mode: ${process.env.NODE_ENV}\n` +
-      `hapi version: ${version}\n` +
-      `${pkg.name()} version: ${pkg.version()}`,
+    `key: ${key}\n` +
+    `cert: ${cert}\n` +
+    `port: ${port}\n` +
+    `mongoDB url: ${mongoDBUrl}\n` +
+    `mode: ${process.env.NODE_ENV}\n` +
+    `hapi version: ${version}\n` +
+    `${pkg.name()} version: ${pkg.version()}`,
   )
 })

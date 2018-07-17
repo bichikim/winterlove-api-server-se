@@ -28,13 +28,9 @@ module.exports = {
   module: {
     rules: [
       {
-        enforce: 'pre',
-        test: /\.(js|ts|vue)/,
-        loader: 'eslint-loader',
+        test: /\.graphql?$/,
         exclude: /node_modules/,
-        options: {
-          formatter,
-        },
+        loader: 'webpack-graphql-loader',
       },
       {
         test: /\.ts$/,
@@ -51,9 +47,6 @@ module.exports = {
       {
         test: /\.js$/,
         exclude: /node_modules/,
-        include: [
-          resolve('./node_modules/vision/lib/manager.js'),
-        ],
         use: 'babel-loader',
       },
     ],
