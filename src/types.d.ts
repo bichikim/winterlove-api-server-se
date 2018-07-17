@@ -42,4 +42,5 @@ declare interface IContext {
 
 declare interface IModels {
   Docs: Model<any>
+  Info: Model<any>
 }

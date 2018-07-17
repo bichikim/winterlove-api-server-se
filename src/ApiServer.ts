@@ -146,7 +146,7 @@ export default class ApiServer implements IAPIServer {
     // key & cert for https
     const tls = await this._getTsl({key, cert})
 
-    // waitingPipe is save all Promise calls.
+    // waitingPipe is for saving all Promise calls.
     // the Promise.all will take the waitingPipe for waiting all calls
     // the reason of using the Promise.all a next await should wait a previous await with out it.
     // but if we use the Promise.all it will run all Promise at ones
