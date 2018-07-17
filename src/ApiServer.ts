@@ -152,7 +152,13 @@ export default class ApiServer implements IAPIServer {
     // but if we use the Promise.all it will run all Promise at ones
     const waitingPipe = []
 
-    this._server = new Hapi.Server({port, host, tls})
+    this._server = new Hapi.Server({
+      port,
+      host,
+      tls,
+      routes: {cors: {origin: ['http://localhost:*']},
+      }})
+
     this._registerSchema(mongooseSchemas)
 
     // run works
