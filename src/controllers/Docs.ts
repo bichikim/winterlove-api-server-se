@@ -26,7 +26,7 @@ export default class Docs extends Controller {
       .write()
     return doc
   }
-  async modify(request: Request, h: ResponseToolkit) {
+  async modify(request: Request) {
     const {id, title, description, ok} = request.payload as any
     const db = await this.context.lowDB()
     const doc = await db.get('docs').find({id})
@@ -36,7 +36,7 @@ export default class Docs extends Controller {
       }
       await doc.assign({title, description}).write()
     }
-    return h.response()
+    return doc
   }
 
   async change(request: Request, h: ResponseToolkit) {
